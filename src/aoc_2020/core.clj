@@ -29,8 +29,7 @@
     threeones (as-sum-of-n 3 2020 expenses)]
       (println (apply * threeones))))
 
-	
-(defn day1part1 [filename & args] 
+(defn day1part1 [filename & args]
   (let [
     expenses (filename-to-integers filename)
     terms (as-sum-of-n 2 2020 expenses)]
@@ -44,26 +43,43 @@
     to (read-string (get groups 2))
     letter (get groups 3)
     password (get groups 4)]
-    {:from from :to to :letter letter :password password}))  
+    {:from from :to to :letter letter :password password}))
+
+(defn iscorrect2 [line]
+  (let
+    [parsed (line2list line)
+    letter (parsed :letter)
+    lettermatch (re-pattern letter)
+    password (parsed :password)
+    from (parsed :from)
+    to (parsed :to)
+    num1 (if
+      (= (nth password (- from 1)) (first letter)) 1 0)
+    num2 (if
+      (= (nth password (- to 1)) (first letter)) 1 0)]
+    (= 1 (+ num1 num2))
+))
 
 (defn iscorrect [line]
   (let
     [parsed (line2list line)
     lettermatch (re-pattern (parsed :letter))
     ntimes (count (re-seq (re-pattern (parsed :letter)) (parsed :password)))]
-    (and (<= (parsed :from) ntimes) (<= ntimes (parsed :to))) 
+    (and (<= (parsed :from) ntimes) (<= ntimes (parsed :to)))
 ))
-    
-    
 
 (defn day2part1 [filename & args]
   (let [lines (clojure.string/split-lines (slurp filename))]
     (println (count (filter iscorrect lines)))
 ))
 
+(defn day2part2 [filename & args]
+  (let [lines (clojure.string/split-lines (slurp filename))]
+    (println (count (filter iscorrect2 lines)))
+))
 (def days-parts-functions {
 	1, {1, day1part1, 2, day1part2},
-	2, {1, day2part1}})
+	2, {1, day2part1, 2, day2part2}})
 
 (defn day-part [day part & args]
 	(let [part-functions (days-parts-functions (read-string day))]
