@@ -39,10 +39,9 @@
 (defn line2list [line]
   (let
     [groups (re-find passwordpattern line)
-    from (read-string (get groups 1))
-    to (read-string (get groups 2))
-    letter (get groups 3)
-    password (get groups 4)]
+    [_ fromstring tostring letter password] groups
+    from (read-string fromstring)
+    to (read-string tostring)]
     {:from from :to to :letter letter :password password}))
 
 (defn iscorrect2 [line]
