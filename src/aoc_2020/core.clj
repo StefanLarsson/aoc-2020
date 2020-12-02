@@ -7,6 +7,7 @@
 
 (defn as-sum-of-n [n value values]
   (cond
+    (< value 0) nil
     (= 0 n) (if
       (= 0 value) '()
       nil)
