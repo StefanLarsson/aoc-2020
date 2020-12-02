@@ -1,9 +1,10 @@
 (ns aoc-2020.core
   (:gen-class))
 
-
 (defn filename-to-integers [fname]
   (map read-string (clojure.string/split-lines (slurp fname))))
+
+(def passwordpattern (re-pattern "(\\d+)-(\\d+) (.): (.*)"))
 
 (defn as-sum-of-n [n value values]
   (cond
@@ -35,8 +36,34 @@
     terms (as-sum-of-n 2 2020 expenses)]
     (println (apply * terms))))
 
+
+(defn line2list [line]
+  (let
+    [groups (re-find passwordpattern line)
+    from (read-string (get groups 1))
+    to (read-string (get groups 2))
+    letter (get groups 3)
+    password (get groups 4)]
+    {:from from :to to :letter letter :password password}))  
+
+(defn iscorrect [line]
+  (let
+    [parsed (line2list line)
+    lettermatch (re-pattern (parsed :letter))
+    ntimes (count (re-seq (re-pattern (parsed :letter)) (parsed :password)))]
+    (and (<= (parsed :from) ntimes) (<= ntimes (parsed :to))) 
+))
+    
+    
+
+(defn day2part1 [filename & args]
+  (let [lines (clojure.string/split-lines (slurp filename))]
+    (println (count (filter iscorrect lines)))
+))
+
 (def days-parts-functions {
-	1, {1, day1part1, 2, day1part2}})
+	1, {1, day1part1, 2, day1part2},
+	2, {1, day2part1}})
 
 (defn day-part [day part & args]
 	(let [part-functions (days-parts-functions (read-string day))]
