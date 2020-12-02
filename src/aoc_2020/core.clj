@@ -35,47 +35,41 @@
     terms (as-sum-of-n 2 2020 expenses)]
     (println (apply * terms))))
 
+(defn parsepasswordline [line]
+  (let [[_ & refs] (re-find passwordpattern line)]
+    refs))
 
-(defn line2list [line]
-  (let
-    [groups (re-find passwordpattern line)
-    [_ fromstring tostring letter password] groups
-    from (read-string fromstring)
-    to (read-string tostring)]
-    {:from from :to to :letter letter :password password}))
-
-(defn iscorrect2 [line]
-  (let
-    [parsed (line2list line)
-    letter (parsed :letter)
+(defn iscorrectlist [alist]
+  (let [
+    [_from _to letter password] alist
+    from (read-string _from)
+    to (read-string _to)
     lettermatch (re-pattern letter)
-    password (parsed :password)
-    from (parsed :from)
-    to (parsed :to)
+    ntimes (count (re-seq lettermatch password))]
+    (and (<= from ntimes) (<= ntimes to))))
+
+(defn iscorrectlist2 [alist]
+  (let [
+    [_from _to letter password] alist
+    from (read-string _from)
+    to (read-string _to)
+    lettermatch (re-pattern letter)
     num1 (if
       (= (nth password (- from 1)) (first letter)) 1 0)
     num2 (if
       (= (nth password (- to 1)) (first letter)) 1 0)]
-    (= 1 (+ num1 num2))
-))
+    (= 1 (+ num1 num2))))
 
-(defn iscorrect [line]
-  (let
-    [parsed (line2list line)
-    lettermatch (re-pattern (parsed :letter))
-    ntimes (count (re-seq (re-pattern (parsed :letter)) (parsed :password)))]
-    (and (<= (parsed :from) ntimes) (<= ntimes (parsed :to)))
-))
+(defn count-lines-satisfying [fname condition]
+  (let [lines (clojure.string/split-lines (slurp fname))]
+    (count (filter condition lines))))
 
 (defn day2part1 [filename & args]
-  (let [lines (clojure.string/split-lines (slurp filename))]
-    (println (count (filter iscorrect lines)))
-))
+  (println (count-lines-satisfying filename (comp iscorrectlist parsepasswordline))))
 
 (defn day2part2 [filename & args]
-  (let [lines (clojure.string/split-lines (slurp filename))]
-    (println (count (filter iscorrect2 lines)))
-))
+  (println (count-lines-satisfying filename (comp iscorrectlist2 parsepasswordline))))
+
 (def days-parts-functions {
 	1, {1, day1part1, 2, day1part2},
 	2, {1, day2part1, 2, day2part2}})
