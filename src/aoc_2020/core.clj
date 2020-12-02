@@ -5,35 +5,6 @@
 (defn filename-to-integers [fname]
   (map read-string (clojure.string/split-lines (slurp fname))))
 
-(defn sums-to-with [sum firstterm list] 
-  (cond
-    (empty? list) nil
-    (= (+ firstterm (first list)) sum) (first list) 
-    :else (sums-to-with sum firstterm (rest list))))
-
-(defn sums-to [sum list]
-  (if
-    (empty? list) nil
-    (let
-      [firstterm (first list)
-      newlist (rest list)
-      secondterm (sums-to-with sum firstterm newlist)]
-      (if secondterm
-        [firstterm secondterm]
-        (sums-to sum newlist)))))
-
-(defn day1part1 [filename & args] 
-	(let [expenses (filename-to-integers filename)
-              terms (sums-to 2020 expenses)]
-		(println (* (get terms 1) (get terms 0)))))
-	
-(defn exists [value values]
-	(cond
-		(empty? values) nil
-		:else (if
-			(= value (first values) value)
-			(exists value (rest values)))))
-
 (defn as-sum-of-n [n value values]
   (cond
     (= 0 n) (if
@@ -54,10 +25,15 @@
   (let [
     expenses (filename-to-integers filename)
     threeones (as-sum-of-n 3 2020 expenses)]
-      (println (apply * threeones))
-        
-	(println expenses)))
-  
+      (println (apply * threeones))))
+
+	
+(defn day1part1 [filename & args] 
+  (let [
+    expenses (filename-to-integers filename)
+    terms (as-sum-of-n 2 2020 expenses)]
+    (println (apply * terms))))
+
 (def days-parts-functions {
 	1, {1, day1part1, 2, day1part2}})
 
