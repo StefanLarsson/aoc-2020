@@ -75,33 +75,43 @@
     0
     1))
 
-(defn tree-sum-gradient [lines grad]
+(defn tree-sum-gradient
+  [lines gradx grady]
   (let
     [width (count (first lines))]
     (loop
       [acc 0
-       pos 0
+      posx 0
+      posy 0
       remlines lines]
-      (if (empty? remlines) acc
-        (do
-          (recur
-            (+ acc (tree-sum pos (first remlines)))
-            (mod (+ pos grad) width)
-            (rest remlines)))))))
-
-
+      (cond
+        (empty? remlines) acc
+        (= 0 (mod posy grady)) (recur
+          (+ acc (tree-sum posx (first remlines)))
+          (mod (+ posx gradx) width)
+          (inc posy)
+          (rest remlines))
+        :else (recur
+          acc
+          posx
+          (inc posy)
+          (rest remlines))))))
 
 (defn day3part1 [& args]
   (let [
     lines (clojure.string/split-lines (slurp "resources/day3/input.txt"))]
-    (println (tree-sum-gradient lines 3))))
+    (println (tree-sum-gradient lines 3 1))))
 
+(defn day3part2 [& args]
+  (let
+    [grads '( (1 1) (3 1) (5 1) (7 1) (1 2))
+    lines (clojure.string/split-lines (slurp "resources/day3/input.txt"))]
+    (apply * (map #(apply tree-sum-gradient (cons lines %)) grads))))
 
 (def days-parts-functions {
 	1, {1, day1part1, 2, day1part2},
 	2, {1, day2part1, 2, day2part2}
-	3, {1, day3part1 }
-
+	3, {1, day3part1  2 day3part2}
 })
 
 (defn day-part [day part & args]
