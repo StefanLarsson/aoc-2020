@@ -70,9 +70,39 @@
 (defn day2part2 [filename & args]
   (println (count-lines-satisfying filename (comp iscorrectlist2 parsepasswordline))))
 
+(defn tree-sum [pos line]
+  (if (= (nth line pos) \.)
+    0
+    1))
+
+(defn tree-sum-gradient [lines grad]
+  (let
+    [width (count (first lines))]
+    (loop
+      [acc 0
+       pos 0
+      remlines lines]
+      (if (empty? remlines) acc
+        (do
+          (recur
+            (+ acc (tree-sum pos (first remlines)))
+            (mod (+ pos grad) width)
+            (rest remlines)))))))
+
+
+
+(defn day3part1 [& args]
+  (let [
+    lines (clojure.string/split-lines (slurp "resources/day3/input.txt"))]
+    (println (tree-sum-gradient lines 3))))
+
+
 (def days-parts-functions {
 	1, {1, day1part1, 2, day1part2},
-	2, {1, day2part1, 2, day2part2}})
+	2, {1, day2part1, 2, day2part2}
+	3, {1, day3part1 }
+
+})
 
 (defn day-part [day part & args]
 	(let [part-functions (days-parts-functions (read-string day))]
