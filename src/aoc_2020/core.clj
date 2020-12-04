@@ -75,38 +75,46 @@
     0
     1))
 
-(defn tree-sum-gradient
-  [lines gradx grady]
+(defn tree-summer-reducer [width [dx dy]]
+  (fn [ret v]
+    (if (= 0 (mod (:posy ret) dy))
+      {
+        :acc (+ (:acc ret) (tree-sum (:posx ret) v))
+        :posx (mod (+ (:posx ret) dx) width)
+        :posy (inc (:posy ret))
+      }
+      {
+        :acc (:acc ret)
+        :posx (:posx ret)
+        :posy (inc (:posy ret))
+      }
+    )
+  )
+)
+
+(defn sum-trees-over [lines]
   (let
     [width (count (first lines))]
-    (loop
-      [acc 0
-      posx 0
-      posy 0
-      remlines lines]
-      (cond
-        (empty? remlines) acc
-        (= 0 (mod posy grady)) (recur
-          (+ acc (tree-sum posx (first remlines)))
-          (mod (+ posx gradx) width)
-          (inc posy)
-          (rest remlines))
-        :else (recur
-          acc
-          posx
-          (inc posy)
-          (rest remlines))))))
+    (fn [[dx dy]]
+      (:acc (reduce (tree-summer-reducer width [dx dy]) {:acc 0 :posx 0 :posy 0} lines)))))
+    
 
 (defn day3part1 [& args]
   (let [
     lines (clojure.string/split-lines (slurp "resources/day3/input.txt"))]
-    (println (tree-sum-gradient lines 3 1))))
+    (do
+      (println ((sum-trees-over lines) '(3 1)))
+)))
 
 (defn day3part2 [& args]
   (let
     [grads '( (1 1) (3 1) (5 1) (7 1) (1 2))
     lines (clojure.string/split-lines (slurp "resources/day3/input.txt"))]
-    (apply * (map #(apply tree-sum-gradient (cons lines %)) grads))))
+    (do
+      (println (reduce * (map (sum-trees-over lines) grads)))
+    )
+  )
+)
 
 (def days-parts-functions {
 	1, {1, day1part1, 2, day1part2},
