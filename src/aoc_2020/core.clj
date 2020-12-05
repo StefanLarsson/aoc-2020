@@ -242,11 +242,48 @@
   )
 )
 
+(defn silly-binary-reducer [zerochar ret a]
+  (do
+    (+ (* 2 ret) (if (= zerochar a) 0 1))
+  )
+)
+
+(def row-binary-reducer #(silly-binary-reducer \F %1 %2))
+
+(defn row-silly-binary [s]
+  (reduce row-binary-reducer 0 s))
+
+(def col-binary-reducer #(silly-binary-reducer \L %1 %2))
+
+(defn col-silly-binary [s]
+  (reduce col-binary-reducer 0 s))
+
+(defn string-to-seat-id [s]
+  (let
+    [
+      row (row-silly-binary (subs s 0 7))
+      col (col-silly-binary (subs s 7))
+    ]
+    (+ col (* 8 row))
+  )
+)
+(defn day5part1 [& args]
+  (do
+    (let
+      [rowids (map string-to-seat-id (clojure.string/split-lines (slurp "resources/day5/input.txt")))]
+      (do
+        (println (apply max rowids))
+      )
+    )
+  )
+)
+
 (def days-parts-functions {
 	1 {1 day1part1 2 day1part2}
 	2 {1 day2part1 2 day2part2}
 	3 {1 day3part1 2 day3part2}
 	4 {1 day4part1 2 day4part2}
+	5 {1 day5part1 }
 })
 
 (defn day-part [day part & args]
