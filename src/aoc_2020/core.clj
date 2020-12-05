@@ -1,4 +1,5 @@
 (ns aoc-2020.core
+  (:require clojure.set)
   (:gen-class))
 
 (defn filename-to-integers [fname]
@@ -125,18 +126,149 @@
   (clojure.set/subset? #{"byr" "iyr" "eyr" "hgt" "hcl" "ecl" "pid" } p)
 )
 
+(defn keys-vals-in-passport [p]
+  (apply sorted-map (flatten (map #(subvec % 1) (re-seq #"(\S+):(\S+)" p)))))
+;;;
+(comment "
+byr (Birth Year) - four digits; at least 1920 and at most 2002.
+iyr (Issue Year) - four digits; at least 2010 and at most 2020.
+eyr (Expiration Year) - four digits; at least 2020 and at most 2030.
+hgt (Height) - a number followed by either cm or in:
+If cm, the number must be at least 150 and at most 193.
+If in, the number must be at least 59 and at most 76.
+hcl (Hair Color) - a # followed by exactly six characters 0-9 or a-f.
+ecl (Eye Color) - exactly one of: amb blu brn gry grn hzl oth.
+pid (Passport ID) - a nine-digit number, including leading zeroes.
+cid (Country ID) - ignored, missing or not.
+;;;
+")
+
+(defn has-valid? [pmap key validator]
+  (let [value (pmap key)]
+    (if value
+      (validator value)
+    )
+  )
+)
+
+(defn is-valid-ecl? [s]
+  (re-matches #"amb|blu|brn|gry|grn|hzl|oth" s))
+
+(def has-valid-ecl? #(has-valid? % "ecl" is-valid-ecl?))
+
+(def is-valid-pid? #(re-matches #"\d{9}" %))
+
+(def has-valid-pid? #(has-valid? % "pid" is-valid-pid?))
+
+(defn is-valid-hcl? [s]
+  (re-matches #"#[0-9a-f]{6}" s)
+)
+
+
+(def has-valid-hcl? #(has-valid? % "hcl" is-valid-hcl?))
+
+(def is-four-digits? #(re-matches #"\d{4}" %))
+
+(defn is-valid-year [s min max]
+  (if (is-four-digits? s)
+    (let [year (read-string s)]
+      (and (<= min year) (<= year max))
+    )
+  )
+)
+
+(def is-valid-byr? #(is-valid-year % 1920 2002))
+(def is-valid-iyr? #(is-valid-year % 2010 2020))
+(def is-valid-eyr? #(is-valid-year % 2020 2030))
+
+(defn has-valid? [pmap key validator]
+  (let [value (pmap key)]
+    (if value
+      (validator value)
+    )
+  )
+)
+
+
+(def has-valid-byr? #(has-valid? % "byr" is-valid-byr?))
+(def has-valid-iyr? #(has-valid? % "iyr" is-valid-iyr?))
+(def has-valid-eyr? #(has-valid? % "eyr" is-valid-eyr?))
+
+(defn has-valid-year [pmap key min max]
+  (let
+    [val (pmap key)]
+    (if val
+      (let
+        [dig-val (is-four-digits? val)]
+        (if dig-val
+          (let [year (read-string dig-val)]
+            (and (<= min year) (<= year max))
+          )
+        )
+      )
+    )
+  )
+)
+
+(def has-valid-byr #(has-valid-year % "byr" 1920 2002))
+(def has-valid-iyr #(has-valid-year % "iyr" 2010 2020))
+(def has-valid-eyr #(has-valid-year % "eyr" 2020 2030))
+
+(defn is-valid-hgt? [s]
+  (let
+    [ [_ svalue unit] (re-matches #"(\d+)(cm|in)" s)]
+    (cond
+      (= "cm" unit)
+      (let
+        [value (read-string svalue)]
+        (and (<= 150 value) (<= value 193))
+      )
+      (= "in" unit)
+      (let
+        [value (read-string svalue)]
+          (and (<= 59 value) (<= value 76))
+      )
+    )
+  )
+)
+
+(def has-valid-hgt? #(has-valid? % "hgt" is-valid-hgt?))
+
 (defn day4part1 [& args]
   (let
-  [passporttexts (clojure.string/split (slurp "resources/day4/input.txt") #"\n\n")]
-  (println (count (filter valid-passport (map keys-in-passport passporttexts))))
-  (println "Hello day3part2"))
+    [passporttexts (clojure.string/split (slurp "resources/day4/input.txt") #"\n\n")]
+    (println (count (filter valid-passport (map keys-in-passport passporttexts))))
+  )
+)
+
+(defn really-valid-passport [pmap]
+  (and
+    (has-valid-byr? pmap)
+    (has-valid-iyr? pmap)
+    (has-valid-eyr? pmap)
+    (has-valid-hgt? pmap)
+    (has-valid-hcl? pmap)
+    (has-valid-ecl? pmap)
+    (has-valid-pid? pmap)
+  )
+)
+
+
+
+(defn day4part2 [& args]
+  (let
+    [passporttexts (clojure.string/split (slurp "resources/day4/input.txt") #"\n\n")]
+    (do
+      (println (count (filter really-valid-passport (map keys-vals-in-passport passporttexts))))
+    )
+  )
 )
 
 (def days-parts-functions {
 	1 {1 day1part1 2 day1part2}
 	2 {1 day2part1 2 day2part2}
 	3 {1 day3part1 2 day3part2}
-	4 {1 day4part1}
+	4 {1 day4part1 2 day4part2}
 })
 
 (defn day-part [day part & args]
