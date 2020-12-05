@@ -267,6 +267,7 @@
     (+ col (* 8 row))
   )
 )
+
 (defn day5part1 [& args]
   (do
     (let
@@ -278,12 +279,28 @@
   )
 )
 
+(defn day5part2 [& args]
+  (do
+    (let
+      [rowids (map string-to-seat-id (clojure.string/split-lines (slurp "resources/day5/input.txt")))
+      minid (apply min rowids)
+      maxid (apply max rowids)
+      sorted (sort rowids)]
+      (do
+        (println (loop [curr (first sorted) rem (rest sorted)]
+          (let [next (first rem)]
+            (if (= next (inc curr)) (recur next (rest rem)) (inc curr)))))
+      )
+    )
+  )
+)
+
 (def days-parts-functions {
 	1 {1 day1part1 2 day1part2}
 	2 {1 day2part1 2 day2part2}
 	3 {1 day3part1 2 day3part2}
 	4 {1 day4part1 2 day4part2}
-	5 {1 day5part1 }
+	5 {1 day5part1 2 day5part2}
 })
 
 (defn day-part [day part & args]
