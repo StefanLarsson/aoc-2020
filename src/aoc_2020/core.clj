@@ -97,7 +97,7 @@
     [width (count (first lines))]
     (fn [[dx dy]]
       (:acc (reduce (tree-summer-reducer width [dx dy]) {:acc 0 :posx 0 :posy 0} lines)))))
-    
+
 
 (defn day3part1 [& args]
   (let [
@@ -116,10 +116,27 @@
   )
 )
 
+
+(defn keys-in-passport [p]
+  (set (map second (re-seq #"(\S*):\S*" p)))
+)
+
+(defn valid-passport [p]
+  (clojure.set/subset? #{"byr" "iyr" "eyr" "hgt" "hcl" "ecl" "pid" } p)
+)
+
+(defn day4part1 [& args]
+  (let
+  [passporttexts (clojure.string/split (slurp "resources/day4/input.txt") #"\n\n")]
+  (println (count (filter valid-passport (map keys-in-passport passporttexts))))
+  (println "Hello day3part2"))
+)
+
 (def days-parts-functions {
-	1, {1, day1part1, 2, day1part2},
-	2, {1, day2part1, 2, day2part2}
-	3, {1, day3part1  2 day3part2}
+	1 {1 day1part1 2 day1part2}
+	2 {1 day2part1 2 day2part2}
+	3 {1 day3part1 2 day3part2}
+	4 {1 day4part1}
 })
 
 (defn day-part [day part & args]
