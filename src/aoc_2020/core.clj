@@ -117,7 +117,6 @@
   )
 )
 
-
 (defn keys-in-passport [p]
   (set (map second (re-seq #"(\S*):\S*" p)))
 )
@@ -128,20 +127,6 @@
 
 (defn keys-vals-in-passport [p]
   (apply sorted-map (flatten (map #(subvec % 1) (re-seq #"(\S+):(\S+)" p)))))
-;;;
-(comment "
-byr (Birth Year) - four digits; at least 1920 and at most 2002.
-iyr (Issue Year) - four digits; at least 2010 and at most 2020.
-eyr (Expiration Year) - four digits; at least 2020 and at most 2030.
-hgt (Height) - a number followed by either cm or in:
-If cm, the number must be at least 150 and at most 193.
-If in, the number must be at least 59 and at most 76.
-hcl (Hair Color) - a # followed by exactly six characters 0-9 or a-f.
-ecl (Eye Color) - exactly one of: amb blu brn gry grn hzl oth.
-pid (Passport ID) - a nine-digit number, including leading zeroes.
-cid (Country ID) - ignored, missing or not.
-;;;
-")
 
 (defn has-valid? [pmap key validator]
   (let [value (pmap key)]
@@ -151,8 +136,7 @@ cid (Country ID) - ignored, missing or not.
   )
 )
 
-(defn is-valid-ecl? [s]
-  (re-matches #"amb|blu|brn|gry|grn|hzl|oth" s))
+(def is-valid-ecl? #(re-matches #"amb|blu|brn|gry|grn|hzl|oth" %))
 
 (def has-valid-ecl? #(has-valid? % "ecl" is-valid-ecl?))
 
@@ -160,10 +144,7 @@ cid (Country ID) - ignored, missing or not.
 
 (def has-valid-pid? #(has-valid? % "pid" is-valid-pid?))
 
-(defn is-valid-hcl? [s]
-  (re-matches #"#[0-9a-f]{6}" s)
-)
-
+(def is-valid-hcl? #(re-matches #"#[0-9a-f]{6}" %))
 
 (def has-valid-hcl? #(has-valid? % "hcl" is-valid-hcl?))
 
@@ -188,7 +169,6 @@ cid (Country ID) - ignored, missing or not.
     )
   )
 )
-
 
 (def has-valid-byr? #(has-valid? % "byr" is-valid-byr?))
 (def has-valid-iyr? #(has-valid? % "iyr" is-valid-iyr?))
@@ -252,8 +232,6 @@ cid (Country ID) - ignored, missing or not.
     (has-valid-pid? pmap)
   )
 )
-
-
 
 (defn day4part2 [& args]
   (let
