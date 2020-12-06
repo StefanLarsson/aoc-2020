@@ -5,9 +5,10 @@
 (defn filename-to-integers [fname]
   (map read-string (clojure.string/split-lines (slurp fname))))
 
-(def passwordpattern (re-pattern "(\\d+)-(\\d+) (.): (.*)"))
+;; Day 1
 
 (defn as-sum-of-n [n value values]
+  "Finds (if it exists) an n item subsequence (not necessarily contiguous) of values whose sum is value"
   (cond
     (< value 0) nil
     (= 0 n) (if
@@ -35,6 +36,10 @@
     expenses (filename-to-integers filename)
     terms (as-sum-of-n 2 2020 expenses)]
     (println (apply * terms))))
+
+;; Day 2
+
+(def passwordpattern #"(\\d+)-(\\d+) (.): (.*)")
 
 (defn parsepasswordline [line]
   (let [[_ & refs] (re-find passwordpattern line)]
@@ -71,6 +76,7 @@
 (defn day2part2 [filename & args]
   (println (count-lines-satisfying filename (comp iscorrectlist2 parsepasswordline))))
 
+;; Day 3
 (defn tree-sum [pos line]
   (if (= (nth line pos) \.)
     0
@@ -117,6 +123,7 @@
   )
 )
 
+;; Day 4
 (defn keys-in-passport [p]
   (set (map second (re-seq #"(\S*):\S*" p)))
 )
@@ -242,6 +249,8 @@
   )
 )
 
+;; Day 5
+
 (defn silly-binary-reducer [zerochar ret a]
   (do
     (+ (* 2 ret) (if (= zerochar a) 0 1))
@@ -295,12 +304,31 @@
   )
 )
 
+;; Day 6
+(defn read-questionnaire-groups [fname]
+  (let [input (slurp fname)]
+    (clojure.string/split input #"\n\n")
+  )
+)
+
+(defn unique-letters-in-string [s]
+  (into #{} (clojure.string/replace s #"[^a-z]" ""))
+)
+
+(defn day6part1 []
+  (let [groups (read-questionnaire-groups "resources/day6//input.txt")]
+    (println (reduce + (map #(count (unique-letters-in-string %)) groups)))
+  )
+)
+
+;; Generic day handling
 (def days-parts-functions {
 	1 {1 day1part1 2 day1part2}
 	2 {1 day2part1 2 day2part2}
 	3 {1 day3part1 2 day3part2}
 	4 {1 day4part1 2 day4part2}
 	5 {1 day5part1 2 day5part2}
+	6 {1 day6part1 }
 })
 
 (defn day-part [day part & args]
