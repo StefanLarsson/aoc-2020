@@ -2,8 +2,13 @@
   (:require clojure.set)
   (:gen-class))
 
-(defn filename-to-integers [fname]
-  (map read-string (clojure.string/split-lines (slurp fname))))
+;; Read a file and split it into lines
+(def filename-to-lines #(clojure.string/split-lines (slurp %)))
+
+;; Read a file and one integer from each line
+(defn filename-to-integers  [fname]
+  (map read-string (filename-to-lines fname))
+)
 
 ;; Day 1
 
@@ -110,7 +115,7 @@
   (let [
     lines (clojure.string/split-lines (slurp "resources/day3/input.txt"))]
     (do
-      (println ((sum-trees-over lines) '(3 1)))
+      (str "The toboggan encountered " ((sum-trees-over lines) '(3 1)) " trees.")
 )))
 
 (defn day3part2 [& args]
@@ -118,7 +123,10 @@
     [grads '( (1 1) (3 1) (5 1) (7 1) (1 2))
     lines (clojure.string/split-lines (slurp "resources/day3/input.txt"))]
     (do
-      (println (reduce * (map (sum-trees-over lines) grads)))
+      (str
+        "The product of the numbers of trees the toboggan encountered over the slopes is "
+        (reduce * (map (sum-trees-over lines) grads))
+      )
     )
   )
 )
@@ -180,26 +188,6 @@
 (def has-valid-byr? #(has-valid? % "byr" is-valid-byr?))
 (def has-valid-iyr? #(has-valid? % "iyr" is-valid-iyr?))
 (def has-valid-eyr? #(has-valid? % "eyr" is-valid-eyr?))
-
-(defn has-valid-year [pmap key min max]
-  (let
-    [val (pmap key)]
-    (if val
-      (let
-        [dig-val (is-four-digits? val)]
-        (if dig-val
-          (let [year (read-string dig-val)]
-            (and (<= min year) (<= year max))
-          )
-        )
-      )
-    )
-  )
-)
-
-(def has-valid-byr #(has-valid-year % "byr" 1920 2002))
-(def has-valid-iyr #(has-valid-year % "iyr" 2010 2020))
-(def has-valid-eyr #(has-valid-year % "eyr" 2020 2030))
 
 (defn is-valid-hgt? [s]
   (let
@@ -307,6 +295,7 @@
 ;; Day 6
 ;; Note: Representation is bad. How to represent a person that did not answer yes to any question?
 ;;       Is a line not considered blank if it contains whitespace only?
+
 (defn read-questionnaire-groups [fname]
   (let [input (slurp fname)]
     (clojure.string/split input #"\n\n")
@@ -347,7 +336,7 @@
 		(if part-functions
         		(let [func (part-functions (read-string part))]
                 		(if func
-		                        (apply func args)
+		                        (println (apply func args))
                 		        (println "Don't know how to handle this day and part yet!")))
 			(println "Don't know about this day"))))
 
