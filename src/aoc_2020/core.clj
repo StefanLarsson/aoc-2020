@@ -44,7 +44,7 @@
 
 ;; Day 2
 
-(def passwordpattern #"(\\d+)-(\\d+) (.): (.*)")
+(def passwordpattern #"(\d+)-(\d+) (.): (.*)")
 
 (defn parsepasswordline [line]
   (let [[_ & refs] (re-find passwordpattern line)]
