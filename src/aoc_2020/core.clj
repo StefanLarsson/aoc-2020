@@ -10,6 +10,12 @@
   (map read-string (filename-to-lines fname))
 )
 
+;; Read a file and split it into groups of lines
+;; on empty lines.
+(defn filename-to-line-groups [fname]
+  (clojure.string/split (slurp fname) #"\n\n")
+)
+
 ;; Day 1
 
 (defn as-sum-of-n [n value values]
@@ -30,17 +36,23 @@
           (cons attemptfirst p)
           (as-sum-of-n n value values1)))))
 
-(defn day1part2 [filename & args]
-  (let [
+(defn day1part2 [& args]
+  (let
+    [filename "resources/day1/input.txt"
     expenses (filename-to-integers filename)
     threeones (as-sum-of-n 3 2020 expenses)]
-      (println (apply * threeones))))
+    (str "The product of three numbers whose sum is 2020 is " (apply * threeones))
+  )
+)
 
-(defn day1part1 [filename & args]
-  (let [
+(defn day1part1 [& args]
+  (let
+    [filename "resources/day1/input.txt"
     expenses (filename-to-integers filename)
     terms (as-sum-of-n 2 2020 expenses)]
-    (println (apply * terms))))
+    (str "The product of two numbers whose sum is 2020 is " (apply * terms))
+  )
+)
 
 ;; Day 2
 
@@ -75,11 +87,17 @@
   (let [lines (clojure.string/split-lines (slurp fname))]
     (count (filter condition lines))))
 
-(defn day2part1 [filename & args]
-  (println (count-lines-satisfying filename (comp iscorrectlist parsepasswordline))))
+(defn day2part1 [& args]
+  (let [filename "resources/day2/input.txt"]
+    (str "The number of lines with compliant passwords is " (count-lines-satisfying filename (comp iscorrectlist parsepasswordline)))
+  )
+)
 
-(defn day2part2 [filename & args]
-  (println (count-lines-satisfying filename (comp iscorrectlist2 parsepasswordline))))
+(defn day2part2 [& args]
+  (let [filename "resources/day2/input.txt"]
+    (str "The number of lines with compliant passwords is " (count-lines-satisfying filename (comp iscorrectlist2 parsepasswordline)))
+  )
+)
 
 ;; Day 3
 (defn tree-sum [pos line]
@@ -211,8 +229,8 @@
 
 (defn day4part1 [& args]
   (let
-    [passporttexts (clojure.string/split (slurp "resources/day4/input.txt") #"\n\n")]
-    (println (count (filter valid-passport (map keys-in-passport passporttexts))))
+    [passporttexts (filename-to-line-groups "resources/day4/input.txt")]
+    (str "The number of valid passports is " (count (filter valid-passport (map keys-in-passport passporttexts))))
   )
 )
 
@@ -230,10 +248,8 @@
 
 (defn day4part2 [& args]
   (let
-    [passporttexts (clojure.string/split (slurp "resources/day4/input.txt") #"\n\n")]
-    (do
-      (println (count (filter really-valid-passport (map keys-vals-in-passport passporttexts))))
-    )
+    [passporttexts (filename-to-line-groups "resources/day4/input.txt")]
+    (str "The number of really valid passports is " (count (filter really-valid-passport (map keys-vals-in-passport passporttexts))))
   )
 )
 
@@ -296,12 +312,6 @@
 ;; Note: Representation is bad. How to represent a person that did not answer yes to any question?
 ;;       Is a line not considered blank if it contains whitespace only?
 
-(defn read-questionnaire-groups [fname]
-  (let [input (slurp fname)]
-    (clojure.string/split input #"\n\n")
-  )
-)
-
 (defn unique-letters-in-string [s]
   (into #{} (clojure.string/replace s #"[^a-z]" ""))
 )
@@ -311,13 +321,13 @@
 (def count-letters-in-all  #(count (apply clojure.set/intersection (map unique-letters-in-string %))))
 
 (defn day6part1 []
-  (let [groups (read-questionnaire-groups "resources/day6/input.txt")]
+  (let [groups (filename-to-line-groups "resources/day6/input.txt")]
     (println (reduce + (map #(count (unique-letters-in-string %)) groups)))
   )
 )
 
 (defn day6part2 []
-  (let [groups (read-questionnaire-groups "resources/day6/input.txt")]
+  (let [groups (filename-to-line-groups "resources/day6/input.txt")]
     (println (reduce + (map count-letters-in-all (map q-group-to-qs groups))))
   )
 )
@@ -340,9 +350,25 @@
                 		        (println "Don't know how to handle this day and part yet!")))
 			(println "Don't know about this day"))))
 
+
 (defn -main
-  [day part & args]
-  (println "Day is " day ", part is" part)
-  (apply day-part day part args)
+  "Advent of Code 2020"
+  ([] (doseq [[day parts] days-parts-functions]
+        (do
+          (println "Day:" day)
+          (doseq [[part fn] parts]
+            (do
+             (println "Part: " part)
+             (println (fn))
+            )
+          )
+        )
+      )
+   )
+
+  ([day part & args]
+    (println "Day is " day ", part is" part)
+    (apply day-part day part args)
+  )
 )
 
