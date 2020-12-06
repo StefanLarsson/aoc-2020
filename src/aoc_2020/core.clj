@@ -305,6 +305,8 @@
 )
 
 ;; Day 6
+;; Note: Representation is bad. How to represent a person that did not answer yes to any question?
+;;       Is a line not considered blank if it contains whitespace only?
 (defn read-questionnaire-groups [fname]
   (let [input (slurp fname)]
     (clojure.string/split input #"\n\n")
@@ -315,12 +317,21 @@
   (into #{} (clojure.string/replace s #"[^a-z]" ""))
 )
 
+(def q-group-to-qs #(clojure.string/split-lines %))
+
+(def count-letters-in-all  #(count (apply clojure.set/intersection (map unique-letters-in-string %))))
+
 (defn day6part1 []
-  (let [groups (read-questionnaire-groups "resources/day6//input.txt")]
+  (let [groups (read-questionnaire-groups "resources/day6/input.txt")]
     (println (reduce + (map #(count (unique-letters-in-string %)) groups)))
   )
 )
 
+(defn day6part2 []
+  (let [groups (read-questionnaire-groups "resources/day6/input.txt")]
+    (println (reduce + (map count-letters-in-all (map q-group-to-qs groups))))
+  )
+)
 ;; Generic day handling
 (def days-parts-functions {
 	1 {1 day1part1 2 day1part2}
@@ -328,7 +339,7 @@
 	3 {1 day3part1 2 day3part2}
 	4 {1 day4part1 2 day4part2}
 	5 {1 day5part1 2 day5part2}
-	6 {1 day6part1 }
+	6 {1 day6part1 2 day6part2}
 })
 
 (defn day-part [day part & args]
