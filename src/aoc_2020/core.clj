@@ -273,10 +273,8 @@
 
 (defn string-to-seat-id [s]
   (let
-    [
-      row (row-silly-binary (subs s 0 7))
-      col (col-silly-binary (subs s 7))
-    ]
+    [row (row-silly-binary (subs s 0 7))
+    col (col-silly-binary (subs s 7))]
     (+ col (* 8 row))
   )
 )
@@ -285,9 +283,7 @@
   (do
     (let
       [rowids (map string-to-seat-id (clojure.string/split-lines (slurp "resources/day5/input.txt")))]
-      (do
-        (println (apply max rowids))
-      )
+      (str "The maximum seat id is " (apply max rowids))
     )
   )
 )
@@ -299,10 +295,15 @@
       minid (apply min rowids)
       maxid (apply max rowids)
       sorted (sort rowids)]
-      (do
-        (println (loop [curr (first sorted) rem (rest sorted)]
-          (let [next (first rem)]
-            (if (= next (inc curr)) (recur next (rest rem)) (inc curr)))))
+      (let
+        [myseat (loop
+                     [curr (first sorted) rem (rest sorted)]
+                     (let
+                       [next (first rem)]
+                       (if (= next (inc curr)) (recur next (rest rem)) (inc curr))
+                     )
+                   )]
+        (str "My seat id is " myseat)
       )
     )
   )
@@ -322,13 +323,13 @@
 
 (defn day6part1 []
   (let [groups (filename-to-line-groups "resources/day6/input.txt")]
-    (println (reduce + (map #(count (unique-letters-in-string %)) groups)))
+    (str "The sum is " (reduce + (map #(count (unique-letters-in-string %)) groups)))
   )
 )
 
 (defn day6part2 []
   (let [groups (filename-to-line-groups "resources/day6/input.txt")]
-    (println (reduce + (map count-letters-in-all (map q-group-to-qs groups))))
+    (str "The sum is " (reduce + (map count-letters-in-all (map q-group-to-qs groups))))
   )
 )
 ;; Generic day handling
