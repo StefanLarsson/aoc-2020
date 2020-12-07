@@ -313,25 +313,41 @@
 ;; Note: Representation is bad. How to represent a person that did not answer yes to any question?
 ;;       Is a line not considered blank if it contains whitespace only?
 
-(defn unique-letters-in-string [s]
-  (into #{} (clojure.string/replace s #"[^a-z]" ""))
+(defn unique-letters [s]
+  (set (re-seq #"[a-z]" s))
 )
-
-(def q-group-to-qs #(clojure.string/split-lines %))
-
-(def count-letters-in-all  #(count (apply clojure.set/intersection (map unique-letters-in-string %))))
 
 (defn day6part1 []
   (let [groups (filename-to-line-groups "resources/day6/input.txt")]
-    (str "The sum is " (reduce + (map #(count (unique-letters-in-string %)) groups)))
+    (str "The sum is " (reduce + (map (comp count unique-letters) groups)))
   )
 )
 
+(def count-letters-in-all-lines
+  (comp count (partial apply clojure.set/intersection) (partial map unique-letters) clojure.string/split-lines))
+
 (defn day6part2 []
   (let [groups (filename-to-line-groups "resources/day6/input.txt")]
-    (str "The sum is " (reduce + (map count-letters-in-all (map q-group-to-qs groups))))
+    (str "The sum is " (reduce + (map count-letters-in-all-lines groups)))
   )
 )
+
+;; Day 7 Bags
+(defn line-to-rule [s]
+  (let
+    [[_ containing rhs] (re-matches #"(.*) bags contain (.*)" s)]
+    (list containing rhs)
+  )
+)
+
+(defn day7part1 []
+  (let
+    [lines (filename-to-lines "resources/day7/input.txt")
+     rules (map line-to-rule lines)
+    ]
+    (println rules)))
+
+
 ;; Generic day handling
 (def days-parts-functions {
 	1 {1 day1part1 2 day1part2}
