@@ -334,7 +334,7 @@
 
 ;; Day 7 Bags
 (defn line-to-edge-seq [s]
-  "Parses a line into a sequence of vectors [container n containee]
+  "Parses a line into a sequence of vectors [container containee n]
    where a bag of color container contains n bags of color containee"
   (let
     [[_ containing rhs] (re-matches #"(.*) bags contain (.*)" s)
@@ -349,18 +349,13 @@
   { containee #{container}}
 )
 
-(defn line-to-rule [s]
-  (let
-    [[_ containing rhs] (re-matches #"(.*) bags contain (.*)" s)
-     ;; The lines with "no other bags" will be dropped but this is ok for now
-     rhsmatches (map rest (re-seq #"(\d+) ([ a-z]+) bags?" rhs))
-    ]
-    ;;(concat (for [[number color] rhsmatches] {color (list containing)}))
-    (for [[number color] rhsmatches] {color (list containing)})
-  )
+(defn edge-to-weighted-contains-edge [[container containee n]]
+  { container #{[containee n]}}
 )
 
 (defn depth-first [start g]
+  "Traverses graph g (adjacency list representation)
+   outputting all elements that are reachable from node start"
   (loop
     [needed (list start)
     found #{}]
@@ -384,12 +379,27 @@
   (let
     [ lines (filename-to-lines "resources/day7/input.txt")
       edges (map edge-to-contained-edge (apply concat (map line-to-edge-seq lines)))
-      mygraph (apply merge-with into edges)
-      mymap (apply merge-with into  (apply concat(map line-to-rule lines)))]
+      mygraph (apply merge-with into edges)]
     (str "There are " (dec (count (depth-first "shiny gold" mygraph))) " bag colors that can contain a shiny gold bag")
   )
 )
 
+(defn count-total-bags-contained-in [graph bag]
+  (let [containees (graph bag)]
+    (if (empty? containees) 0
+         (reduce + (map (fn [[bag1 weight]] (* weight (+ 1 (count-total-bags-contained-in graph bag1)))) containees))
+    )
+  )
+)
+
+(defn day7part2 []
+  (let
+    [ lines (filename-to-lines "resources/day7/input.txt")
+      edges (map edge-to-weighted-contains-edge (apply concat (map line-to-edge-seq lines)))
+      mygraph (apply merge-with into edges)]
+    (str "A shiny gold bag will contain " (count-total-bags-contained-in mygraph "shiny gold") " bags.")
+  )
+)
 
 ;; Generic day handling
 (def days-parts-functions {
@@ -399,7 +409,7 @@
 	4 {1 day4part1 2 day4part2}
 	5 {1 day5part1 2 day5part2}
 	6 {1 day6part1 2 day6part2}
-	7 {1 day7part1}
+	7 {1 day7part1 2 day7part2}
 })
 
 (defn day-part [day part & args]
