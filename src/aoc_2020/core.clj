@@ -402,6 +402,54 @@
 )
 
 ;;Day 8 Handheld Halting
+(defn op [_op]
+  (cond (= "acc" _op) :acc
+        (= "jmp" _op) :jmp
+        (= "nop" _op) :nop))
+
+(defn line-to-instruction [s]
+  (let
+    [[_ _op arg] (re-matches #"(nop|acc|jmp) ([+\-]\d+)" s)]
+    { :op (op _op) :arg (Integer. arg) }
+  )
+)
+
+(def init-state { :addr 0 :acc 0})
+
+(defn execute [state [op arg]]
+   (cond
+     (= :nop op)
+       { :addr (inc (state :addr)) :acc (state :acc)}
+     (= :acc op)
+       { :addr (inc (state :addr)) :acc (+ (state :acc) arg)}
+     (= :jmp op)
+       { :addr (+ (state :addr) arg) :acc (state :acc)}
+   )
+)
+
+(defn run-until-halt [instructions]
+  (loop
+    [ visited #{}
+      state init-state]
+    (let [addr (state :addr)
+          op ((get instructions addr) :op)
+          arg ((get instructions addr) :arg)
+          new-state (execute state [op arg])]
+         (if (contains? visited (new-state :addr))
+           state
+           (recur (conj visited addr) new-state)
+         )
+    )
+  )
+)
+
+(defn day8part1 []
+  (let [lines (filename-to-lines "resources/day8/input.txt")
+        instructions (into [] (map line-to-instruction lines))
+        final-state (run-until-halt instructions)]
+     (str "The accumulator holds the value " (final-state :acc) " before it loops")
+  )
+)
 
 ;; Generic day handling
 (def days-parts-functions {
@@ -412,6 +460,7 @@
 	5 {1 day5part1 2 day5part2}
 	6 {1 day6part1 2 day6part2}
 	7 {1 day7part1 2 day7part2}
+	8 {1 day8part1 }
 })
 
 (defn day-part [day part & args]
