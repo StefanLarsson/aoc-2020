@@ -401,6 +401,8 @@
   )
 )
 
+;;Day 8 Handheld Halting
+
 ;; Generic day handling
 (def days-parts-functions {
 	1 {1 day1part1 2 day1part2}
