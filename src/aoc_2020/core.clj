@@ -333,19 +333,62 @@
 )
 
 ;; Day 7 Bags
+(defn line-to-edge-seq [s]
+  "Parses a line into a sequence of vectors [container n containee]
+   where a bag of color container contains n bags of color containee"
+  (let
+    [[_ containing rhs] (re-matches #"(.*) bags contain (.*)" s)
+     ;; The lines with "no other bags" will be dropped but this is ok for now
+     rhsmatches (map rest (re-seq #"(\d+) ([ a-z]+) bags?" rhs))
+    ]
+    (for [[number color] rhsmatches] [containing color (Integer. number)])
+  )
+)
+
+(defn edge-to-contained-edge [[container containee n]]
+  { containee #{container}}
+)
+
 (defn line-to-rule [s]
   (let
-    [[_ containing rhs] (re-matches #"(.*) bags contain (.*)" s)]
-    (list containing rhs)
+    [[_ containing rhs] (re-matches #"(.*) bags contain (.*)" s)
+     ;; The lines with "no other bags" will be dropped but this is ok for now
+     rhsmatches (map rest (re-seq #"(\d+) ([ a-z]+) bags?" rhs))
+    ]
+    ;;(concat (for [[number color] rhsmatches] {color (list containing)}))
+    (for [[number color] rhsmatches] {color (list containing)})
+  )
+)
+
+(defn depth-first [start g]
+  (loop
+    [needed (list start)
+    found #{}]
+    (if
+      (empty? needed) found ;; A list will work like a stack
+      (let
+        [curr (first needed)
+        children (g curr)
+        needed-children (filter (complement #(contains? found %)) children)
+        new-needed (into (rest needed) needed-children)]
+        (if (contains? found curr)
+          (recur new-needed found)
+          (recur new-needed (conj found curr))
+        )
+      )
+    )
   )
 )
 
 (defn day7part1 []
   (let
-    [lines (filename-to-lines "resources/day7/input.txt")
-     rules (map line-to-rule lines)
-    ]
-    (println rules)))
+    [ lines (filename-to-lines "resources/day7/input.txt")
+      edges (map edge-to-contained-edge (apply concat (map line-to-edge-seq lines)))
+      mygraph (apply merge-with into edges)
+      mymap (apply merge-with into  (apply concat(map line-to-rule lines)))]
+    (str "There are " (dec (count (depth-first "shiny gold" mygraph))) " bag colors that can contain a shiny gold bag")
+  )
+)
 
 
 ;; Generic day handling
@@ -356,6 +399,7 @@
 	4 {1 day4part1 2 day4part2}
 	5 {1 day5part1 2 day5part2}
 	6 {1 day6part1 2 day6part2}
+	7 {1 day7part1}
 })
 
 (defn day-part [day part & args]
