@@ -492,6 +492,55 @@
   )
 )
 
+;; Day 9 Encoding Error
+
+(def is-sum-of-two (partial as-sum-of-n 2))
+
+(defn first-invalid [n numbers]
+   (if (is-sum-of-two (get numbers n) (take n numbers))
+     (recur n (vec (rest numbers)))
+     (get numbers n)
+   )
+)
+
+
+(defn day9part1 []
+  (let [numbers (filename-to-integers "resources/day9/input.txt")]
+    (str "The first number that is not the sum of two of the preceding 25 numbers is " (first-invalid 25 (vec numbers)))
+  )
+)
+
+(defn initial-summing-to [target terms]
+  "Finds an initial subsequence summing to target"
+  (cond
+    (< target 0) nil
+    (= target 0) '()
+    (empty? terms) nil
+    :else (let [first-term (first terms)
+               end (initial-summing-to (- target first-term) (rest terms))]
+               (if end (conj end first-term ))
+          )
+  )
+)
+
+(defn consecutive-summing-to [target terms]
+   "Finds a subsequence summing to target"
+   (let [initial (initial-summing-to target terms)]
+        (if initial initial
+            (recur target (rest terms))
+        )
+   )
+)
+
+(defn day9part2 []
+  (let
+    [numbers (filename-to-integers "resources/day9/input.txt")
+    target (first-invalid 25 (vec numbers))
+    mysubs (consecutive-summing-to target numbers)]
+    (str "The sum of the max and min of the first subsequence summing to " target " is " (+ (apply max mysubs) (apply min mysubs)))
+  )
+)
+
 ;; Generic day handling
 (def days-parts-functions {
 	1 {1 day1part1 2 day1part2}
@@ -502,6 +551,7 @@
 	6 {1 day6part1 2 day6part2}
 	7 {1 day7part1 2 day7part2}
 	8 {1 day8part1 2 day8part2}
+	9 {1 day9part1 2 day9part2}
 })
 
 (defn day-part [day part & args]
