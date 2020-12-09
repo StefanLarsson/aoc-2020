@@ -441,7 +441,7 @@
 		     new-state
                    (= (new-state :addr) length)
                      new-state
-                   :else 
+                   :else
 		     (recur (conj visited addr) new-state)
 		 )
 	    )
@@ -449,25 +449,33 @@
   )
 )
 
+(defn switch-fix-attempt [instruction]
+  "Returns the attempted fix for the instruction, if possible"
+  (case (instruction :op)
+    :jmp (assoc instruction :op :nop)
+    :nop (assoc instruction :op :jmp)
+    nil
+  )
+)
+
 (defn fix-instructions [instructions]
    "Fix the program by changing either a nop to a jmp or the other way around"
    (loop [fix 0]
-     (do
-       (cond
-         (= ((get instructions fix)  :op) :jmp)
-           (do
-            (println (run-until-halt-or-done (assoc instructions fix {:op :nop :arg 0})))
-           )
-         (= ((get instructions fix)  :op) :nop)
-           (println (run-until-halt-or-done (assoc instructions fix {:op :jmp :arg ((get instructions fix) :arg) })))
-         :else (println "Nothing o change")
-       )
-       (recur (inc fix))
+     (let
+       [instruction (get instructions fix)
+       fix-instruction (switch-fix-attempt instruction)]
+	       (if fix-instruction
+		 (let [fixed-result (run-until-halt-or-done (assoc instructions fix fix-instruction))]
+                   (if (= (count instructions) (fixed-result :addr)) fixed-result
+                       (recur (inc fix))
+                   )
+		 )
+	         (recur (inc fix))
+	       )
      )
    )
 )
-     
-  
+
 (defn day8part1 []
   (let [lines (filename-to-lines "resources/day8/input.txt")
         instructions (into [] (map line-to-instruction lines))
@@ -480,7 +488,7 @@
   (let [lines (filename-to-lines "resources/day8/input.txt")
         instructions (into [] (map line-to-instruction lines))
         final-state (fix-instructions instructions)]
-     (str "The accumulator holds the value " (final-state :acc) " before it loops")
+     (str "The accumulator holds the value " (final-state :acc) " when it stops, after fix")
   )
 )
 
@@ -493,7 +501,7 @@
 	5 {1 day5part1 2 day5part2}
 	6 {1 day6part1 2 day6part2}
 	7 {1 day7part1 2 day7part2}
-	8 {1 day8part1 }
+	8 {1 day8part1 2 day8part2}
 })
 
 (defn day-part [day part & args]
