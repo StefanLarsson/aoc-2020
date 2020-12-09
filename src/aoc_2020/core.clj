@@ -427,26 +427,59 @@
    )
 )
 
-(defn run-until-halt [instructions]
-  (loop
-    [ visited #{}
-      state init-state]
-    (let [addr (state :addr)
-          op ((get instructions addr) :op)
-          arg ((get instructions addr) :arg)
-          new-state (execute state [op arg])]
-         (if (contains? visited (new-state :addr))
-           state
-           (recur (conj visited addr) new-state)
-         )
-    )
+(defn run-until-halt-or-done [instructions]
+  (let [length (count instructions)]
+	  (loop
+	    [ visited #{}
+	      state init-state]
+	    (let [addr (state :addr)
+		  op ((get instructions addr) :op)
+		  arg ((get instructions addr) :arg)
+		  new-state (execute state [op arg])]
+		 (cond
+                   (contains? visited (new-state :addr))
+		     new-state
+                   (= (new-state :addr) length)
+                     new-state
+                   :else 
+		     (recur (conj visited addr) new-state)
+		 )
+	    )
+	  )
   )
 )
 
+(defn fix-instructions [instructions]
+   "Fix the program by changing either a nop to a jmp or the other way around"
+   (loop [fix 0]
+     (do
+       (cond
+         (= ((get instructions fix)  :op) :jmp)
+           (do
+            (println (run-until-halt-or-done (assoc instructions fix {:op :nop :arg 0})))
+           )
+         (= ((get instructions fix)  :op) :nop)
+           (println (run-until-halt-or-done (assoc instructions fix {:op :jmp :arg ((get instructions fix) :arg) })))
+         :else (println "Nothing o change")
+       )
+       (recur (inc fix))
+     )
+   )
+)
+     
+  
 (defn day8part1 []
   (let [lines (filename-to-lines "resources/day8/input.txt")
         instructions (into [] (map line-to-instruction lines))
-        final-state (run-until-halt instructions)]
+        final-state (run-until-halt-or-done instructions)]
+     (str "The accumulator holds the value " (final-state :acc) " before it loops")
+  )
+)
+
+(defn day8part2 []
+  (let [lines (filename-to-lines "resources/day8/input.txt")
+        instructions (into [] (map line-to-instruction lines))
+        final-state (fix-instructions instructions)]
      (str "The accumulator holds the value " (final-state :acc) " before it loops")
   )
 )
