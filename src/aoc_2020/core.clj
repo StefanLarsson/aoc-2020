@@ -535,14 +535,18 @@
 (defn day9part2 []
   (let
     [numbers (filename-to-integers "resources/day9/input.txt")
-    target (first-invalid 25 (vec numbers))
+    target (->> "resources/day9/input.txt"
+                 filename-to-integers
+                 vec
+                 (first-invalid 25))
     mysubs (consecutive-summing-to target numbers)]
     (str "The sum of the max and min of the first subsequence summing to " target " is " (+ (apply max mysubs) (apply min mysubs)))
   )
 )
 
 ;; Generic day handling
-(def days-parts-functions {
+(def days-parts-functions
+  (sorted-map
 	1 {1 day1part1 2 day1part2}
 	2 {1 day2part1 2 day2part2}
 	3 {1 day3part1 2 day3part2}
@@ -552,7 +556,8 @@
 	7 {1 day7part1 2 day7part2}
 	8 {1 day8part1 2 day8part2}
 	9 {1 day9part1 2 day9part2}
-})
+  )
+)
 
 (defn day-part [day part & args]
 	(let [part-functions (days-parts-functions (read-string day))]
@@ -568,11 +573,10 @@
   "Advent of Code 2020"
   ([] (doseq [[day parts] days-parts-functions]
         (do
-          (println "Day:" day)
+          (println "Day" day)
           (doseq [[part fn] parts]
             (do
-             (println "Part: " part)
-             (println (fn))
+             (println (str "Part " part ": " (fn)))
             )
           )
         )
