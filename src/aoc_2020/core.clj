@@ -27,7 +27,7 @@
       nil)
     (empty? values) nil
     :else (let
-      [ n1 (- n 1)
+      [ n1 (dec n)
         attemptfirst (first values)
         value1 (- value attemptfirst)
         values1 (rest values)
@@ -541,6 +541,29 @@
                  (first-invalid 25))
     mysubs (consecutive-summing-to target numbers)]
     (str "The sum of the max and min of the first subsequence summing to " target " is " (+ (apply max mysubs) (apply min mysubs)))
+  )
+)
+
+;; Day 10 Adapter Array
+
+(defn joltage-reducer [[one-diffs three-diffs joltage ] nextjoltage]
+  (let [diff (- nextjoltage joltage)]
+    (cond
+      (= diff 1) [(inc one-diffs) three-diffs nextjoltage]
+      (= diff 3) [one-diffs (inc three-diffs) nextjoltage]
+      :else [one-diffs three-diffs nextjoltage]
+    )
+  )
+)
+
+(defn day10part1 []
+  (let [[one-diffs three-diffs _]
+    (->> "resources/day10/input.txt"
+        filename-to-integers
+        sort
+        (reduce joltage-reducer [0 0 0])
+        )]
+    (str "The product of the number of one jolt differences and the number of three jolt differences is " (* one-diffs (inc three-diffs)))
   )
 )
 
