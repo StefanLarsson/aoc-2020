@@ -34,7 +34,7 @@
         p (as-sum-of-n n1 value1 values1)]
         (if p
           (cons attemptfirst p)
-          (as-sum-of-n n value values1)))))
+          (recur n value values1)))))
 
 (defn day1part2 [& args]
   (let
