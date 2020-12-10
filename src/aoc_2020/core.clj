@@ -567,19 +567,93 @@
   )
 )
 
+(defn adj-list-from-sorted [sorted-voltages]
+  (loop [from (first sorted-voltages)
+         potential-tos (rest sorted-voltages)
+         adj-list {}]
+    (if (empty? potential-tos)
+      adj-list
+      (recur
+        (first potential-tos)
+        (rest potential-tos)
+        (assoc adj-list from (take-while (partial >= (+ 3 from)) potential-tos))
+      )
+    )
+  )
+)
+
+(defn count-paths-to-terminal [start g]
+  "Traverses graph g (adjacency list representation)
+   counting the number of paths to terminal element"
+  (loop
+    [needed (list start)
+    found 0]
+    (if
+      (empty? needed) found ;; A list will work like a stack
+      (let
+        [curr (first needed)
+        children (g curr)
+        needed-children children
+        new-needed (into (rest needed) needed-children)]
+        (if (empty? children)
+          (recur new-needed (inc found))
+          (recur new-needed found)
+        )
+      )
+    )
+  )
+)
+
+(defn countit [g]
+  (let [[key val] (first g)]
+    (count-paths-to-terminal key g)))
+
+(defn split-list-on-greater-than-2 [coll]
+  (loop [found-finished '()  ;; list of lists
+         building '()        ;; list
+         to-be-examined coll] ;; list
+    (let [next (first to-be-examined)
+          previous (first building)]
+    (cond
+      (empty? to-be-examined) (if (empty? building) found-finished (conj found-finished building))
+      (empty? building) (recur found-finished (conj building next) (rest to-be-examined))
+      :else (if (> next (+ 2 previous))
+        (recur (conj found-finished (reverse building)) (list next) (rest to-be-examined)) ;; Start building a new
+        (recur found-finished (conj building next) (rest to-be-examined))
+      )
+    )
+    )
+  )
+)
+
+(defn day10part2 []
+  (let [pathcounts (-> "resources/day10/input.txt"
+                       filename-to-integers
+                       sort
+                       (conj 0)
+                       split-list-on-greater-than-2
+                       reverse
+                       (->> (map adj-list-from-sorted)
+                            (map countit))
+                       )]
+    (str "The number of possible combinations is " (apply * pathcounts))
+  )
+)
+
+
 ;; Generic day handling
 (def days-parts-functions
   (sorted-map
-	1 {1 day1part1 2 day1part2}
-	2 {1 day2part1 2 day2part2}
-	3 {1 day3part1 2 day3part2}
-	4 {1 day4part1 2 day4part2}
-	5 {1 day5part1 2 day5part2}
-	6 {1 day6part1 2 day6part2}
-	7 {1 day7part1 2 day7part2}
-	8 {1 day8part1 2 day8part2}
-	9 {1 day9part1 2 day9part2}
-	10 {1 day10part1 }
+	1 {1 day1part1   2 day1part2}
+	2 {1 day2part1   2 day2part2}
+	3 {1 day3part1   2 day3part2}
+	4 {1 day4part1   2 day4part2}
+	5 {1 day5part1   2 day5part2}
+	6 {1 day6part1   2 day6part2}
+	7 {1 day7part1   2 day7part2}
+	8 {1 day8part1   2 day8part2}
+	9 {1 day9part1   2 day9part2}
+	10 {1 day10part1 2 day10part2 }
   )
 )
 
