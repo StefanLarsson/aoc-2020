@@ -626,7 +626,9 @@
   )
 )
 
-(defn day10part2 []
+
+(defn day10part2first []
+  "Divides the things into sections, multiplying them together"
   (let [pathcounts (-> "resources/day10/input.txt"
                        filename-to-integers
                        sort
@@ -639,7 +641,30 @@
     (str "The number of possible combinations is " (apply * pathcounts))
   )
 )
+;; Continuation: Note that we already have a topological sorting!
+(defn countpaths [joltages]
+  (loop [done {(first joltages) 1}
+         remaining (rest joltages)]
+    (if (empty? remaining) done
+      (let [nextkey (first remaining)
+            next1 (inc nextkey)
+            next2 (inc next1)
+            next3 (inc next2)
+            getzerodefault (fn [key] (or (done key) 0))
+            nextvalue (+ (getzerodefault next1) (getzerodefault next2) (getzerodefault next3))]
+        (recur (assoc done nextkey nextvalue) (rest remaining))
+      )
+    )
+  )
+)
 
+(defn day10part2 []
+  (let [joltages (-> "resources/day10/input.txt"
+               filename-to-integers
+               sort
+               (conj 0)
+               reverse)]
+  (str "The number of possible combinations is " ((countpaths joltages) 0))))
 
 ;; Generic day handling
 (def days-parts-functions
