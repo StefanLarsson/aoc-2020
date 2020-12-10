@@ -567,9 +567,9 @@
   )
 )
 
-(defn adj-list-from-sorted [sorted-voltages]
-  (loop [from (first sorted-voltages)
-         potential-tos (rest sorted-voltages)
+(defn adj-list-from-sorted [sorted-joltages]
+  (loop [from (first sorted-joltages)
+         potential-tos (rest sorted-joltages)
          adj-list {}]
     (if (empty? potential-tos)
       adj-list
