@@ -234,6 +234,24 @@
   )
 )
 
+(def passport-validity-map
+  { "byr" is-valid-byr?
+   "iyr" is-valid-iyr?
+   "eyr" is-valid-eyr?
+   "hgt" is-valid-hgt?
+   "hcl" is-valid-hcl?
+   "ecl" is-valid-ecl?
+   "pis" is-valid-pid?
+   }
+)
+
+
+(defn validate-map [m checkers]
+  "m a map to validate
+  checkers a map from fields to checkers
+  checks that all the values for all the fields exist and fulfill the corresponding checker"
+  (and))
+
 (defn really-valid-passport [pmap]
   (and
     (has-valid-byr? pmap)
@@ -665,6 +683,140 @@
                (conj 0)
                reverse)]
   (str "The number of possible combinations is " ((countpaths joltages) 0))))
+
+;; Day 11 Seating System
+
+(defn standard-day-filename [day]
+  (str "resources/day" day "/input.txt")
+  )
+(def test-seat-initial (clojure.string/split-lines
+"L.LL.LL.LL
+LLLLLLL.LL
+L.L.L..L..
+LLLL.LL.LL
+L.LL.LL.LL
+L.LLLLL.LL
+..L.L.....
+LLLLLLLLLL
+L.LLLLLL.L
+L.LLLLL.LL"
+  ))
+
+(def test-seat-final (clojure.string/split-lines "#.#L.L#.##
+#LLL#LL.L#
+L.#.L..#..
+#L##.##.L#
+#.#L.LL.LL
+#.#L#L#.##
+..L.L.....
+#L#L##L#L#
+#.LLLLLL.L
+#.#L#L#.##"))
+(defn count-occupied-oneline [line]
+  (count (filter (partial = \#) line))
+  )
+
+(defn state [c]
+  "Converts a character to a state"
+  ({\. :floor \# :occupied-seat \L :empty-seat} c))
+
+(defn build-board [lines]
+  "Create a board from a sequence of line"
+  (loop [boardlines []
+         textlines lines]
+    (if (empty? textlines)
+      boardlines
+      (recur (conj boardlines (into [] (map state (first textlines))))
+             (rest textlines)
+             )
+      )
+    )
+  )
+
+(defn state-to-char [state]
+  (case state
+    :floor \.
+    :occupied-seat \#
+    :empty-seat \L))
+
+(defn statevector-to-string [states]
+  (apply str (map state-to-char states)))
+
+(defn board-to-string [board]
+  (clojure.string/join "\n" (map statevector-to-string board)))
+
+
+(defn get-state [board [x y]]
+  (nth (nth board y) x))
+
+(defn neighbours [board x y]
+  (let
+    [w (board-width board)
+     h (board-height board)]
+  (for
+    [i (range (dec x) (+ 2 x))
+    j (range (dec y) (+ 2 y))
+    :when (and (>= i 0) (>= j 0) (< i w) (< j h) (not (and (= i x) (= j y))) )]
+    [i j])))
+
+
+(defn count-occupied-adjacent [board x y]
+  (let [neighbours (neighbours board x y)
+        neighbour-states (map (partial get-state board) neighbours)
+        neighbour-occupied (filter #(= :occupied-seat %) neighbour-states)]
+    (count neighbour-occupied)
+  )
+)
+(defn step-board [board]
+  (let [w (board-width board)
+        h (board-height board)
+        ]
+    (loop [i 0
+           new-board []]
+      (if
+        (= i h)
+        new-board
+        (recur (inc i) (conj new-board
+      (loop [j 0
+             new-row []]
+        (if (= j w)
+          new-row
+          (let
+            [state (new-state (get-state board [j i]) (count-occupied-adjacent board j i))]
+             (recur (inc j) (conj new-row state))
+          )
+        )
+      )
+      ))))))
+
+(defn board-height [board] (count board))
+
+(defn board-width [board] (count (first board)))
+
+
+(defn new-state [state n]
+  "Calculates the new state of a position if the old state was state and
+  n adjacent seats are occupied"
+  (case state
+    :floor :floor
+    :empty-seat (if (= n 0) :occupied-seat :empty-seat)
+    :occupied-seat (if (>= n 4) :empty-seat :occupied-seat)))
+
+
+(defn count-occupied [lines]
+  (reduce + (map count-occupied-oneline lines)))
+
+(defn day11part1 []
+  (let [initial-board (-> 11
+                  standard-day-filename
+                  filename-to-lines
+                  build-board
+                  )]
+    (loop [oldboard initial-board
+           newboard (step-board initial-board)]
+      (if (= (board-to-string oldboard) (board-to-string newboard))
+        (count-occupied (clojure.string/split-lines (board-to-string newboard)))
+        (recur newboard (step-board newboard))))))
 
 ;; Generic day handling
 (def days-parts-functions
