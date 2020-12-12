@@ -790,7 +790,7 @@ L.#.L..#..
     :empty-seat (if (= 0 (count-occupied-adjacent board x y)) :occupied-seat :empty-seat)
     :occupied-seat (if (>= (count-occupied-adjacent board x y) 4) :empty-seat :occupied-seat)))
 
-(defn step-board [board]
+(defn step-board [board position-stepper]
   (let [w (board-width board)
         h (board-height board)
         ]
@@ -806,7 +806,7 @@ L.#.L..#..
           (into [] (reverse new-row))
           (let
             ;;[state (new-state (get-state board [j i]) (count-occupied-adjacent board j i))]
-            [state (step-position board j i)]
+            [state (position-stepper board j i)]
              (recur (inc j) (conj new-row state))
           )
         )
@@ -826,10 +826,10 @@ L.#.L..#..
                   )]
 (time
     (loop [oldboard initial-board
-           newboard (step-board initial-board)]
+           newboard (step-board initial-board step-position)]
       (if (= (board-to-string oldboard) (board-to-string newboard))
         (count-occupied (clojure.string/split-lines (board-to-string newboard)))
-        (recur newboard (step-board newboard))))))
+        (recur newboard (step-board newboard step-position))))))
 )
 ;; Generic day handling
 (def days-parts-functions
