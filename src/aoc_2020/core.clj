@@ -753,13 +753,14 @@ L.#.L..#..
 (defn get-state [board [x y]]
   (nth (nth board y) x))
 
-(defn neighbours [ w h x y]
+(defn neighbours-1 [ w h x y]
   (for
     [i (range (dec x) (+ 2 x))
     j (range (dec y) (+ 2 y))
     :when (and (>= i 0) (>= j 0) (< i w) (< j h) (not (and (= i x) (= j y))) )]
     [i j]))
 
+(def neighbours (memoize neighbours-1))
 
 (defn count-occupied-adjacent [board x y]
   (let
@@ -785,15 +786,15 @@ L.#.L..#..
         h (board-height board)
         ]
     (loop [i 0
-           new-board []]
+           new-board '()]
       (if
         (= i h)
-        new-board
+        (into [] (reverse new-board))
         (recur (inc i) (conj new-board
       (loop [j 0
-             new-row []]
+             new-row '()]
         (if (= j w)
-          new-row
+          (into [] (reverse new-row))
           (let
             [state (new-state (get-state board [j i]) (count-occupied-adjacent board j i))]
              (recur (inc j) (conj new-row state))
@@ -813,12 +814,13 @@ L.#.L..#..
                   filename-to-lines
                   build-board
                   )]
+(time
     (loop [oldboard initial-board
            newboard (step-board initial-board)]
       (if (= (board-to-string oldboard) (board-to-string newboard))
         (count-occupied (clojure.string/split-lines (board-to-string newboard)))
         (recur newboard (step-board newboard))))))
-
+)
 ;; Generic day handling
 (def days-parts-functions
   (sorted-map
