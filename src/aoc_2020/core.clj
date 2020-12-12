@@ -813,6 +813,35 @@ L.#.L..#..
       )
       ))))))
 
+(def directions (list [-1 -1] [-1 0] [-1 1] [0 -1] [0 1] [1 -1] [1 0] [1 1]))
+
+(defn count-visible-occupied [board x y]
+  (let
+    [w (board-width board)
+     h (board-height board)]
+
+    (reduce +
+	(for [direction directions]
+	  (loop
+	    [x (+ x (first direction))
+	     y (+ y (second direction))]
+	    (cond
+	      (or (< x 0) (>= x w) (< y 0) (>= y h) (= :empty-seat (get-state board [x y]))) 0
+	      (= :occupied-seat (get-state board [x y]) ) 1
+	      :else (recur (+ x (first direction)) (+ y (second direction)))
+	    )
+	  )
+	)
+    )
+  )
+)
+
+
+(defn step-position-2 [board x y]
+  (case (get-state board [x y])
+    :floor :floor
+    :empty-seat (if (= 0 (count-visible-occupied board x y)) :occupied-seat :empty-seat)
+    :occupied-seat (if (>= (count-visible-occupied board x y) 5) :empty-seat :occupied-seat)))
 
 
 (defn count-occupied [lines]
@@ -831,6 +860,22 @@ L.#.L..#..
         (count-occupied (clojure.string/split-lines (board-to-string newboard)))
         (recur newboard (step-board newboard step-position))))))
 )
+
+(defn day11part2 []
+  (let
+    [initial-board (-> 11
+                  standard-day-filename
+                  filename-to-lines
+                  build-board
+                  )]
+(time
+    (loop [oldboard initial-board
+           newboard (step-board initial-board step-position-2)]
+      (if (= (board-to-string oldboard) (board-to-string newboard))
+        (count-occupied (clojure.string/split-lines (board-to-string newboard)))
+        (recur newboard (step-board newboard step-position-2))))))
+)
+
 ;; Generic day handling
 (def days-parts-functions
   (sorted-map
@@ -844,7 +889,7 @@ L.#.L..#..
 	8 {1 day8part1   2 day8part2}
 	9 {1 day9part1   2 day9part2}
 	10 {1 day10part1 2 day10part2 }
-	11 {1 day11part1 }
+	11 {1 day11part1  2 day11part2}
   )
 )
 
