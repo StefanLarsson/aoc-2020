@@ -733,6 +733,10 @@ L.#.L..#..
     )
   )
 
+(defn board-height [board] (count board))
+
+(defn board-width [board] (count (first board)))
+
 (defn state-to-char [state]
   (case state
     :floor \.
@@ -749,24 +753,33 @@ L.#.L..#..
 (defn get-state [board [x y]]
   (nth (nth board y) x))
 
-(defn neighbours [board x y]
-  (let
-    [w (board-width board)
-     h (board-height board)]
+(defn neighbours [ w h x y]
   (for
     [i (range (dec x) (+ 2 x))
     j (range (dec y) (+ 2 y))
     :when (and (>= i 0) (>= j 0) (< i w) (< j h) (not (and (= i x) (= j y))) )]
-    [i j])))
+    [i j]))
 
 
 (defn count-occupied-adjacent [board x y]
-  (let [neighbours (neighbours board x y)
-        neighbour-states (map (partial get-state board) neighbours)
-        neighbour-occupied (filter #(= :occupied-seat %) neighbour-states)]
+  (let
+    [w (board-width board)
+     h (board-height board)
+     neighbours (neighbours w h x y)
+     neighbour-states (map (partial get-state board) neighbours)
+     neighbour-occupied (filter #(= :occupied-seat %) neighbour-states)]
     (count neighbour-occupied)
   )
 )
+
+(defn new-state [state n]
+  "Calculates the new state of a position if the old state was state and
+  n adjacent seats are occupied"
+  (case state
+    :floor :floor
+    :empty-seat (if (= n 0) :occupied-seat :empty-seat)
+    :occupied-seat (if (>= n 4) :empty-seat :occupied-seat)))
+
 (defn step-board [board]
   (let [w (board-width board)
         h (board-height board)
@@ -789,18 +802,6 @@ L.#.L..#..
       )
       ))))))
 
-(defn board-height [board] (count board))
-
-(defn board-width [board] (count (first board)))
-
-
-(defn new-state [state n]
-  "Calculates the new state of a position if the old state was state and
-  n adjacent seats are occupied"
-  (case state
-    :floor :floor
-    :empty-seat (if (= n 0) :occupied-seat :empty-seat)
-    :occupied-seat (if (>= n 4) :empty-seat :occupied-seat)))
 
 
 (defn count-occupied [lines]
@@ -831,6 +832,7 @@ L.#.L..#..
 	8 {1 day8part1   2 day8part2}
 	9 {1 day9part1   2 day9part2}
 	10 {1 day10part1 2 day10part2 }
+	11 {1 day11part1 }
   )
 )
 
