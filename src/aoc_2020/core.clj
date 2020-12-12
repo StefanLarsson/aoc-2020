@@ -781,6 +781,15 @@ L.#.L..#..
     :empty-seat (if (= n 0) :occupied-seat :empty-seat)
     :occupied-seat (if (>= n 4) :empty-seat :occupied-seat)))
 
+;;(defn step-position [board x y]
+;;  (new-state (get-state board [x y]) (count-occupied-adjacent board x y)))
+
+(defn step-position [board x y]
+  (case (get-state board [x y])
+    :floor :floor
+    :empty-seat (if (= 0 (count-occupied-adjacent board x y)) :occupied-seat :empty-seat)
+    :occupied-seat (if (>= (count-occupied-adjacent board x y) 4) :empty-seat :occupied-seat)))
+
 (defn step-board [board]
   (let [w (board-width board)
         h (board-height board)
@@ -796,7 +805,8 @@ L.#.L..#..
         (if (= j w)
           (into [] (reverse new-row))
           (let
-            [state (new-state (get-state board [j i]) (count-occupied-adjacent board j i))]
+            ;;[state (new-state (get-state board [j i]) (count-occupied-adjacent board j i))]
+            [state (step-position board j i)]
              (recur (inc j) (conj new-row state))
           )
         )
