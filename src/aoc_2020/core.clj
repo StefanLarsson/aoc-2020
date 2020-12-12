@@ -876,6 +876,71 @@ L.#.L..#..
         (recur newboard (step-board newboard step-position-2))))))
 )
 
+;; Day 12 Rain Risk
+
+(def initial-state [0 0 0])
+;; A state is a vector of W/E position, S/N position and facing
+
+(defn direction [facing]
+  (case (mod facing 360)
+    0   [ 1  0]
+    90  [ 0  1]
+    180 [-1  0]
+    270 [ 0 -1]
+  )
+)
+(defn navigate-ship [[x y facing] [action value]]
+  (case action
+    :north [x (+ y value) facing]
+    :south [x (- y value) facing]
+    :east  [(+ x value) y facing]
+    :west  [(- x value) y facing]
+    :left  [x y (+ facing value)]
+    :right [x y (- facing value)]
+    :forward (let
+               [[dx dy] (direction facing)]
+               [(+ x (* value dx)) (+ y (* value dy)) facing])
+
+  )
+)
+(defn line-to-nav-instruction [line]
+  (let
+    [[_ action-string val-string] (re-matches #"(.)(.*)" line)
+     value (read-string val-string)
+     action (case action-string
+               "E" :east
+               "W" :west
+               "N" :north
+               "S" :south
+               "L" :left
+               "R" :right
+               "F" :forward) ]
+    [action value]
+))
+(defn navigate [instructions]
+  (loop
+    [state initial-state
+     instructions instructions]
+    (if
+      (empty? instructions) state
+      (recur (navigate-ship state (first instructions)) (rest instructions))
+    )
+  )
+)
+
+
+
+(defn day12part1 []
+  (let
+    [lines (-> 12
+             standard-day-filename
+             filename-to-lines)
+    instructions (map line-to-nav-instruction lines)
+    [x y facing] (navigate instructions)]
+    (+ (Math/abs x) (Math/abs y))
+  )
+)
+
 ;; Generic day handling
 (def days-parts-functions
   (sorted-map
@@ -890,6 +955,7 @@ L.#.L..#..
 	9 {1 day9part1   2 day9part2}
 	10 {1 day10part1 2 day10part2 }
 	11 {1 day11part1  2 day11part2}
+	12 {1 day12part1  2 day12part1}
   )
 )
 
