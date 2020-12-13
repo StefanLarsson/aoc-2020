@@ -903,6 +903,27 @@ L.#.L..#..
 
   )
 )
+(defn rotate-left [value [dx dy]]
+  (case (mod value 360)
+    0   [dx dy]
+     90 [(- dy) dx]
+    180 [(- dx) (- dy)]
+    270 [dy (- dx)]
+  )
+)
+
+(defn navigate-ship-and-waypoint [[[x y] [dx dy]] [action value]]
+  (case action
+    :north [[x y ] [dx (+ dy value)]]
+    :south [[x y ] [dx (- dy value)]]
+    :east [[x y ] [(+ dx value)  dy ]]
+    :west [[x y ] [(- dx value) dy]]
+    :left [[x y] (rotate-left value [dx dy])]
+    :right [[x y] (rotate-left (- 360 value) [dx dy])]
+    :forward [[(+ x (* value dx)) (+ y (* value dy))] [dx dy]]
+  )
+)
+
 (defn line-to-nav-instruction [line]
   (let
     [[_ action-string val-string] (re-matches #"(.)(.*)" line)
@@ -928,6 +949,16 @@ L.#.L..#..
   )
 )
 
+(defn navigate-with-waypoint [instructions]
+  (loop
+    [state [[0 0] [ 10 1]]
+     instructions instructions]
+    (if
+      (empty? instructions) state
+      (recur (navigate-ship-and-waypoint state (first instructions)) (rest instructions))
+    )
+  )
+)
 
 
 (defn day12part1 []
@@ -937,6 +968,16 @@ L.#.L..#..
              filename-to-lines)
     instructions (map line-to-nav-instruction lines)
     [x y facing] (navigate instructions)]
+    (+ (Math/abs x) (Math/abs y))
+  )
+)
+(defn day12part2 []
+  (let
+    [lines (-> 12
+             standard-day-filename
+             filename-to-lines)
+    instructions (map line-to-nav-instruction lines)
+    [[x y] [dx dy]] (navigate-with-waypoint instructions)]
     (+ (Math/abs x) (Math/abs y))
   )
 )
@@ -955,7 +996,7 @@ L.#.L..#..
 	9 {1 day9part1   2 day9part2}
 	10 {1 day10part1 2 day10part2 }
 	11 {1 day11part1  2 day11part2}
-	12 {1 day12part1  2 day12part1}
+	12 {1 day12part1  2 day12part2}
   )
 )
 
