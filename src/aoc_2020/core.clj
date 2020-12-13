@@ -981,6 +981,29 @@ L.#.L..#..
     (+ (Math/abs x) (Math/abs y))
   )
 )
+;; Day 13 Shuttle Search
+(defn busids-from-line [line]
+  (let
+    [id-strings (filter (complement (partial = "x")) (re-seq #"[^,]+" line))
+     ids (map read-string id-strings)]
+    ids))
+
+(defn minutes-to-wait [earliest bus-id]
+  (- bus-id (mod earliest bus-id))
+  )
+
+
+
+(defn day13part1 []
+  (let [lines (-> 13
+                  standard-day-filename
+                  filename-to-lines)
+        earliest-time (read-string (first lines))
+        ids (busids-from-line (second lines))
+        ids-sorted (sort #(- (minutes-to-wait earliest-time %1) (minutes-to-wait earliest-time %2)) ids)]
+    (* (first ids-sorted) (minutes-to-wait earliest-time (first ids-sorted)))
+  )
+)
 
 ;; Generic day handling
 (def days-parts-functions
@@ -997,6 +1020,7 @@ L.#.L..#..
 	10 {1 day10part1 2 day10part2 }
 	11 {1 day11part1  2 day11part2}
 	12 {1 day12part1  2 day12part2}
+	13 {1 day13part1  }
   )
 )
 
