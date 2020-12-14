@@ -1125,10 +1125,9 @@ L.#.L..#..
   "Advent of Code 2020"
   ([] (doseq [[day parts] days-parts-functions]
         (do
-          (println "Day" day)
           (doseq [[part fn] parts]
             (do
-             (println (str "Part " part ": " (fn)))
+             (println (format "Day %2d, Part %2d: %s" day  part  (fn)))
             )
           )
         )
