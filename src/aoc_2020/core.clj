@@ -1050,7 +1050,7 @@ L.#.L..#..
   "Finds a solution to x = a1 (mod m1) and x = a2 (mod m2)"
   (let
     [[_ [u v]] (gcd m1 m2)]
-    (println m1 m2 u v a1 a2)
+;    (println m1 m2 u v a1 a2)
      (+ (* a1 m2 v) (* a2 m1 u))
   )
 )
@@ -1082,7 +1082,7 @@ L.#.L..#..
                  (re-seq #"[^,]+")
                  (map-indexed #(vector %1 %2)))
         indexed-interesting-strings (filter (fn [[index bus-id]] (not= "x" bus-id)) indexed-strings)
-        congruences (map (fn [[i string]] [(- i) (Long/parseLong string)]) indexed-interesting-strings)
+        congruences (map (fn [[i string]] [(- i) (bigint string)]) indexed-interesting-strings)
         solution (solve-congruences congruences)
         ]
 
