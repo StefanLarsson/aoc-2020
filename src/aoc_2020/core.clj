@@ -1012,25 +1012,6 @@ L.#.L..#..
 ;; Bus line id[k] departs at t + k ( i.e. id1 divides (t + k) i.e. t = -k (mod id1)
 ;; So we have a set of congruences to solve
 ;; Bring out the Chinese!
-(defn gcd [n0 m0]
-  "Returns the gcd of n0 and m0, and a vector of the coefficients from the Euclidean algorithm"
-  (loop [n n0
-         m m0
-         a1 1
-         b1 0
-         a2 0
-         b2 1]
-    (let [q (quot n m)
-          r (mod n m)]
-      (println m n a1 b1  a2 b2 q r " and " m "=" a2 "*" n0 "+" b2 "*" m0)
-      (if
-        (= 0 r) [m [a2 b2]]
-        (recur m r a2 b2 (- a1 (* q a2)) (- b1 (* q b2)))
-      )
-    )
-  )
-)
-
 ;; n  = q1*m   + r1          common divisors of m and n are same as of m and r1
 ;; m  = q2*r1  + r2          common divisors om m and r1 same as r1 and r2
 ;; r1 = q3*r2  + r3          common divisors om r1 and r2 same as r2 and r3
@@ -1046,20 +1027,70 @@ L.#.L..#..
 ;; So a_(i+2) = (a_i - q_(i+2) * a_(i+1))
 ;;    b_(i+2) = (b_i - q_(i+2) * b_(i+1))
 
-;;
-;; r1 = q3 * r2 + r3
-;; gcd is the last non-zero remainder
-;; how to write it as a linear combination of a and b?
-;; r_n = q_(n+2) * r2 +
-;; r_1 = a - q1*b = 1*a - q1 * b                      1 -q1
-;;  r_2  = (b - q_2*r_1) = 1 * b - q2*(1*a - q1*b)      1
+(defn gcd [n0 m0]
+  "Returns the gcd of n0 and m0, and a vector of the coefficients from the Euclidean algorithm"
+  (loop [n n0
+         m m0
+         a1 1
+         b1 0
+         a2 0
+         b2 1]
+    (let [q (quot n m)
+          r (mod n m)]
+;;      (println m n a1 b1  a2 b2 q r " and " m "=" a2 "*" n0 "+" b2 "*" m0)
+      (if
+        (= 0 r) [m [a2 b2]]
+        (recur m r a2 b2 (- a1 (* q a2)) (- b1 (* q b2)))
+      )
+    )
+  )
+)
 
-;;
+(defn solve-pair-congruences [[a1 m1] [a2 m2]]
+  "Finds a solution to x = a1 (mod m1) and x = a2 (mod m2)"
+  (let
+    [[_ [u v]] (gcd m1 m2)]
+    (println m1 m2 u v a1 a2)
+     (+ (* a1 m2 v) (* a2 m1 u))
+  )
+)
+
+(defn solve-congruences [congruences]
+  "Congruences is a sequence of pairs [a m]. Returns the smallest non-negative x which is
+  congruent to a mod m for all the pairs. The sequence must not be empty. The moduli must be pairwise relatively prime"
+  (loop [ x 0 prod 1 congruences congruences]
+    (if
+      (empty? congruences) (mod x prod)
+      (let
+        [[a m] (first congruences)
+         y (solve-pair-congruences [x prod] [a m])
+         nextm (* m prod)]
+    ;    (println (type y) (type m))
+    ;     (println "We believe " x " is congruent to all and to " prod " and " y "is congruent to that and " a " mod " m".")
+        (recur (mod y nextm) nextm (rest congruences))
+      )
+    )
+  )
+)
 
 
+(defn day13part2 []
+  (let [indexed-strings (->> 13
+                 standard-day-filename
+                 filename-to-lines
+                 second
+                 (re-seq #"[^,]+")
+                 (map-indexed #(vector %1 %2)))
+        indexed-interesting-strings (filter (fn [[index bus-id]] (not= "x" bus-id)) indexed-strings)
+        congruences (map (fn [[i string]] [(- i) (Long/parseLong string)]) indexed-interesting-strings)
+        solution (solve-congruences congruences)
+        ]
 
-(defn aaa [line]
-  (re-seq #"[^,]+" line))
+    (str "The earliest time where all buses will depart at the right offset is " solution)
+    )
+  )
+
+
 ;;
 ;; Generic day handling
 (def days-parts-functions
@@ -1076,7 +1107,7 @@ L.#.L..#..
 	10 {1 day10part1 2 day10part2 }
 	11 {1 day11part1  2 day11part2}
 	12 {1 day12part1  2 day12part2}
-	13 {1 day13part1  }
+	13 {1 day13part1  2 day13part2}
   )
 )
 
