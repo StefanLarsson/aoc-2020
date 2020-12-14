@@ -1090,6 +1090,72 @@ L.#.L..#..
     )
   )
 
+;; Day 14 Docking Data
+
+(defn parse-mask [line]
+  (let [[_ mask] (re-matches #"mask = (.*)" line)]
+    (if mask
+      [:mask mask])))
+
+(defn parse-mem [line]
+  (let [[_ address value] (re-matches #"mem\[(\d+)\] = (\d+)" line)]
+    (if value
+      [:mem (Integer/parseInt address) (Integer/parseInt value)]
+      )
+    )
+  )
+
+(defn parse-docking-line [line]
+                    (or (parse-mem line) (parse-mask line)))
+
+;; How to define a state for this machine?
+;; initial-state: mask undefined (at least the first instruction is a mask!)
+;; 0 in memory at all positions
+(defn initial-docking-state []
+  [(sorted-map) nil]
+  )
+
+(defn execute-mask [[memory _] mask]
+  [memory mask]
+  )
+
+(defn put-with-mask [mask value]
+  (let [constant-mask (Long/parseLong (.replace mask \X \0) 2)
+        user-mask (Long/parseLong (.replace mask \X \1) 2)]
+    (bit-or (bit-and value user-mask) constant-mask)))
+
+(defn execute-mem [[memory mask] address value]
+  (let [old (or (get memory address) 0)
+        new (put-with-mask mask value)]
+    [(assoc memory address new) mask]
+  )
+)
+
+(defn execute-docking-instr [state instr]
+  (let [op (first instr)
+        args (rest instr)]
+    (case op
+      :mem (apply execute-mem state args)
+      :mask (apply execute-mask state args)
+      )
+    )
+  )
+
+(defn sum-state [[memory _]]
+  (reduce + (for [[key val] memory] val))
+)
+
+(defn day14part1 []
+  (let [instructions (->> 14
+                      standard-day-filename
+                      filename-to-lines
+                      (map parse-docking-line))
+                      final-state (reduce execute-docking-instr (initial-docking-state) instructions)
+        ]
+    (sum-state final-state)
+        ))
+
+
 
 ;;
 ;; Generic day handling
