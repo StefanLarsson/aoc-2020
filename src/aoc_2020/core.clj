@@ -1005,6 +1005,62 @@ L.#.L..#..
   )
 )
 
+;; Part 2
+;; Find t such that:
+;; Bus line id0 departs at t (i.e. id0 divides t)
+;; and for all k
+;; Bus line id[k] departs at t + k ( i.e. id1 divides (t + k) i.e. t = -k (mod id1)
+;; So we have a set of congruences to solve
+;; Bring out the Chinese!
+(defn gcd [n0 m0]
+  "Returns the gcd of n0 and m0, and a vector of the coefficients from the Euclidean algorithm"
+  (loop [n n0
+         m m0
+         a1 1
+         b1 0
+         a2 0
+         b2 1]
+    (let [q (quot n m)
+          r (mod n m)]
+      (println m n a1 b1  a2 b2 q r " and " m "=" a2 "*" n0 "+" b2 "*" m0)
+      (if
+        (= 0 r) [m [a2 b2]]
+        (recur m r a2 b2 (- a1 (* q a2)) (- b1 (* q b2)))
+      )
+    )
+  )
+)
+
+;; n  = q1*m   + r1          common divisors of m and n are same as of m and r1
+;; m  = q2*r1  + r2          common divisors om m and r1 same as r1 and r2
+;; r1 = q3*r2  + r3          common divisors om r1 and r2 same as r2 and r3
+
+;; Expressing remainders in terms of m and n?
+;; Very first step: m = 0*n + 1*m
+;; Second: r1 = 1*n - q1*m
+;; Third:  r2 = 1*m - q2 *r1
+;; Assume r_i = a_i*n + b_i*m
+;; We have r_(i+2) = r_i -  q_(i+2) * r_(i+1)
+;;         r_(i+2) = a_i*n + b_i * n - q_i+2 * (a_(i+1)*n + b_(i+1) * m)
+;;         r_(i+2) = (a_i - q_(i+2) * a_(i+1)) * n + (b_i - q_(i+2)*b_(i+1)) * m
+;; So a_(i+2) = (a_i - q_(i+2) * a_(i+1))
+;;    b_(i+2) = (b_i - q_(i+2) * b_(i+1))
+
+;;
+;; r1 = q3 * r2 + r3
+;; gcd is the last non-zero remainder
+;; how to write it as a linear combination of a and b?
+;; r_n = q_(n+2) * r2 +
+;; r_1 = a - q1*b = 1*a - q1 * b                      1 -q1
+;;  r_2  = (b - q_2*r_1) = 1 * b - q2*(1*a - q1*b)      1
+
+;;
+
+
+
+(defn aaa [line]
+  (re-seq #"[^,]+" line))
+;;
 ;; Generic day handling
 (def days-parts-functions
   (sorted-map
