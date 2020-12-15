@@ -1,6 +1,7 @@
 (ns aoc-2020.core
   (:require clojure.set)
-  (:gen-class))
+  (:gen-class)
+  (:use clojure.math.combinatorics))
 
 ;; Read a file and split it into lines
 (def filename-to-lines #(clojure.string/split-lines (slurp %)))
@@ -1131,15 +1132,68 @@ L.#.L..#..
   )
 )
 
-(defn execute-docking-instr [state instr]
+(def docking-machine
+  {
+   :mem execute-mem
+   :mask execute-mask
+  }
+)
+
+(defn execute-instr [machine-description state instr]
   (let [op (first instr)
         args (rest instr)]
-    (case op
-      :mem (apply execute-mem state args)
-      :mask (apply execute-mask state args)
-      )
+    (apply (machine-description op) state args)
+  )
+)
+
+(def execute-docking-instr (partial execute-instr docking-machine))
+
+(defn mask-address-bit [mask-input address-input]
+  (case mask-input
+    \0 address-input
+     mask-input
     )
   )
+
+(defn mask-bit-possibilities [c]
+  (case c
+    \X [ 0 1]
+    \0 [ 0]
+    \1 [ 1]
+    )
+  )
+
+
+(defn expand-addresses [mask address]
+  (let
+    [non-padded (Long/toBinaryString address)
+     length (. non-padded length)
+     all-seqs (->> non-padded
+            (concat (repeat (- 36 length) \0))
+            (map vector mask)
+            (map #(apply mask-address-bit %))
+            (map mask-bit-possibilities)
+            (apply cartesian-product))
+           ]
+    (map (partial reduce #(+ ( * 2 %1) %2)) all-seqs  )
+  )
+)
+
+(defn execute-mem-2 [[memory mask] address value]
+  (let [addresses (expand-addresses mask address)]
+    (loop [memory memory
+           addresses addresses]
+      (if (empty? addresses) [memory mask]
+        (recur (assoc memory (first addresses) value) (rest addresses))))))
+
+(def docking2-machine
+  {
+   :mem execute-mem-2
+   :mask execute-mask
+  }
+)
+
+(def execute-docking2-instr (partial execute-instr docking2-machine))
 
 (defn sum-state [[memory _]]
   (reduce + (for [[key val] memory] val))
@@ -1152,10 +1206,18 @@ L.#.L..#..
                       (map parse-docking-line))
                       final-state (reduce execute-docking-instr (initial-docking-state) instructions)
         ]
-    (sum-state final-state)
+    (format "The sum of all memory locations is %d" (sum-state final-state))
         ))
 
-
+(defn day14part2 []
+  (let [instructions (->> 14
+                      standard-day-filename
+                      filename-to-lines
+                      (map parse-docking-line))
+                      final-state (reduce execute-docking2-instr (initial-docking-state) instructions)
+        ]
+    (format "The sum of all memory locations is %d" (sum-state final-state))
+        ))
 
 ;;
 ;; Generic day handling
@@ -1174,6 +1236,7 @@ L.#.L..#..
 	11 {1 day11part1  2 day11part2}
 	12 {1 day12part1  2 day12part2}
 	13 {1 day13part1  2 day13part2}
+	14 {1 day14part1  2 day14part2}
   )
 )
 
@@ -1199,7 +1262,8 @@ L.#.L..#..
         )
       )
    )
-
+  ([day] (doseq [[part fn] (days-parts-functions (read-string day))]
+                 (println (format "Day% 2d, Part %2d: %s" (read-string day)  part (fn)))))
   ([day part & args]
     (println "Day is " day ", part is" part)
     (apply day-part day part args)
