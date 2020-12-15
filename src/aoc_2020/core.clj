@@ -360,7 +360,7 @@
      ;; The lines with "no other bags" will be dropped but this is ok for now
      rhsmatches (map rest (re-seq #"(\d+) ([ a-z]+) bags?" rhs))
     ]
-    (for [[number color] rhsmatches] [containing color (Integer. number)])
+    (for [[number color] rhsmatches] [containing color  (Integer/parseInt number)])
   )
 )
 
@@ -429,7 +429,7 @@
 (defn line-to-instruction [s]
   (let
     [[_ _op arg] (re-matches #"(nop|acc|jmp) ([+\-]\d+)" s)]
-    { :op (op _op) :arg (Integer. arg) }
+    { :op (op _op) :arg (Integer/parseInt arg) }
   )
 )
 
@@ -884,8 +884,8 @@ L.#.L..#..
 (def initial-state [0 0 0])
 ;; A state is a vector of W/E position, S/N position and facing
 
-(defn direction [facing]
-  (case (mod facing 360)
+(defn direction [^long facing]
+  (case (long (mod facing 360))
     0   [ 1  0]
     90  [ 0  1]
     180 [-1  0]
@@ -903,11 +903,11 @@ L.#.L..#..
     :forward (let
                [[dx dy] (direction facing)]
                [(+ x (* value dx)) (+ y (* value dy)) facing])
-
   )
 )
+
 (defn rotate-left [value [dx dy]]
-  (case (mod value 360)
+  (case (long (mod value 360))
     0   [dx dy]
      90 [(- dy) dx]
     180 [(- dx) (- dy)]
@@ -970,7 +970,7 @@ L.#.L..#..
              standard-day-filename
              filename-to-lines)
     instructions (map line-to-nav-instruction lines)
-    [x y facing] (navigate instructions)]
+    [^long x ^long y facing] (navigate instructions)]
     (format "The Manhattan distance from the ships starting point to the final point is %d" (+ (Math/abs x) (Math/abs y)))
   )
 )
@@ -981,7 +981,7 @@ L.#.L..#..
              standard-day-filename
              filename-to-lines)
     instructions (map line-to-nav-instruction lines)
-    [[x y] [dx dy]] (navigate-with-waypoint instructions)]
+    [[^long x ^long y] [dx dy]] (navigate-with-waypoint instructions)]
     (format "The Manhattan distance from the ships starting point to the final point is %d" (+ (Math/abs x) (Math/abs y)))
   )
 )
@@ -1041,8 +1041,8 @@ L.#.L..#..
          b1 0
          a2 0
          b2 1]
-    (let [q (quot n m)
-          r (mod n m)]
+    (let [^long q (quot n m)
+          ^long r (mod n m)]
 ;;      (println m n a1 b1  a2 b2 q r " and " m "=" a2 "*" n0 "+" b2 "*" m0)
       (if
         (= 0 r) [m [a2 b2]]
@@ -1073,7 +1073,7 @@ L.#.L..#..
          nextm (* m prod)]
     ;    (println (type y) (type m))
     ;     (println "We believe " x " is congruent to all and to " prod " and " y "is congruent to that and " a " mod " m".")
-        (recur (mod y nextm) nextm (rest congruences))
+        (recur (long (mod y nextm)) (long nextm) (rest congruences))
       )
     )
   )
@@ -1125,7 +1125,7 @@ L.#.L..#..
   [memory mask]
   )
 
-(defn put-with-mask [mask value]
+(defn put-with-mask [^String mask value]
   (let [constant-mask (Long/parseLong (.replace mask \X \0) 2)
         user-mask (Long/parseLong (.replace mask \X \1) 2)]
     (bit-or (bit-and value user-mask) constant-mask)))
@@ -1250,7 +1250,7 @@ L.#.L..#..
       [ (- turn last-spoken-previous) (assoc spoken last-spoken turn) (inc turn)]
       [0 (assoc spoken last-spoken turn) (inc turn)])))
 
-(defn play-to-turn [[last-spoken spoken turn1] turn]
+(defn play-to-turn [[last-spoken spoken ^long turn1] ^long turn]
   (if (= turn1 turn) last-spoken
     (recur (play-state last-spoken spoken turn1) turn)
     )
