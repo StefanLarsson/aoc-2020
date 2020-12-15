@@ -848,34 +848,36 @@ L.#.L..#..
 (defn count-occupied [lines]
   (reduce + (map count-occupied-oneline lines)))
 
-(defn day11part1 []
+(defn day11part1int []
   (let [initial-board (-> 11
                   standard-day-filename
                   filename-to-lines
                   build-board
                   )]
-(time
     (loop [oldboard initial-board
            newboard (step-board initial-board step-position)]
       (if (= (board-to-string oldboard) (board-to-string newboard))
         (count-occupied (clojure.string/split-lines (board-to-string newboard)))
         (recur newboard (step-board newboard step-position))))))
-)
 
-(defn day11part2 []
+(defn day11part1[]
+  (format "The final board has %d occupied positions" (day11part1int)))
+
+(defn day11part2int []
   (let
     [initial-board (-> 11
                   standard-day-filename
                   filename-to-lines
                   build-board
                   )]
-(time
     (loop [oldboard initial-board
            newboard (step-board initial-board step-position-2)]
       (if (= (board-to-string oldboard) (board-to-string newboard))
         (count-occupied (clojure.string/split-lines (board-to-string newboard)))
         (recur newboard (step-board newboard step-position-2))))))
-)
+
+(defn day11part2 []
+  (format "The final board has %d occupied positions" (day11part2int)))
 
 ;; Day 12 Rain Risk
 
@@ -969,9 +971,10 @@ L.#.L..#..
              filename-to-lines)
     instructions (map line-to-nav-instruction lines)
     [x y facing] (navigate instructions)]
-    (+ (Math/abs x) (Math/abs y))
+    (format "The Manhattan distance from the ships starting point to the final point is %d" (+ (Math/abs x) (Math/abs y)))
   )
 )
+
 (defn day12part2 []
   (let
     [lines (-> 12
@@ -979,9 +982,10 @@ L.#.L..#..
              filename-to-lines)
     instructions (map line-to-nav-instruction lines)
     [[x y] [dx dy]] (navigate-with-waypoint instructions)]
-    (+ (Math/abs x) (Math/abs y))
+    (format "The Manhattan distance from the ships starting point to the final point is %d" (+ (Math/abs x) (Math/abs y)))
   )
 )
+
 ;; Day 13 Shuttle Search
 (defn busids-from-line [line]
   (let
@@ -1002,7 +1006,8 @@ L.#.L..#..
         earliest-time (read-string (first lines))
         ids (busids-from-line (second lines))
         ids-sorted (sort #(- (minutes-to-wait earliest-time %1) (minutes-to-wait earliest-time %2)) ids)]
-    (* (first ids-sorted) (minutes-to-wait earliest-time (first ids-sorted)))
+    (format "The earliest possible departure time is %d "
+    (* (first ids-sorted) (minutes-to-wait earliest-time (first ids-sorted))))
   )
 )
 
@@ -1252,12 +1257,14 @@ L.#.L..#..
   )
 
 (defn day15part1 []
-  (play-to-turn (play-initial '(18,11,9,0,5,1)) 2020)
+  (format "The number spoken at turn 2020 is %d"
+  (play-to-turn (play-initial '(18,11,9,0,5,1)) 2020))
   )
 
 (defn day15part2 []
+  (format "The number spoken at turn 30000000 is %d"
   (play-to-turn (play-initial '(18,11,9,0,5,1)) 30000000)
-  )
+  ))
 
 ;;
 ;; Generic day handling
