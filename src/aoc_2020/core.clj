@@ -1219,6 +1219,46 @@ L.#.L..#..
     (format "The sum of all memory locations is %d" (sum-state final-state))
         ))
 
+;; Day 15 Rambunctious Recitation
+
+;Representation of a game
+; a map of all the numbers spoken, and when they were last spoken
+; and keeping track of which turn it is (about to be played)
+;  [map turn]
+; the map shall be from number to: something keeping track of when it was last spoken
+; AND if it exists a diff telling how many days apart it was last spoken
+; The state shall also contain the last number spoken
+
+(defn play-initial [initial-numbers]
+  "Sets up the state according to initial-numbers. Assumes no repetition."
+  (loop [last-spoken nil
+         spoken  {}
+         turn 0
+         numbers initial-numbers]
+    (if (empty? numbers) [last-spoken spoken turn]
+      (recur (first numbers) (assoc spoken  last-spoken turn) (inc turn) (rest numbers)))))
+
+(defn play-state [last-spoken spoken turn]
+;  (println "spoke " last-spoken "at turn " turn)
+  (let [last-spoken-previous (spoken last-spoken)]
+    (if last-spoken-previous
+      [ (- turn last-spoken-previous) (assoc spoken last-spoken turn) (inc turn)]
+      [0 (assoc spoken last-spoken turn) (inc turn)])))
+
+(defn play-to-turn [[last-spoken spoken turn1] turn]
+  (if (= turn1 turn) last-spoken
+    (recur (play-state last-spoken spoken turn1) turn)
+    )
+  )
+
+(defn day15part1 []
+  (play-to-turn (play-initial '(18,11,9,0,5,1)) 2020)
+  )
+
+(defn day15part2 []
+  (play-to-turn (play-initial '(18,11,9,0,5,1)) 30000000)
+  )
+
 ;;
 ;; Generic day handling
 (def days-parts-functions
@@ -1237,6 +1277,7 @@ L.#.L..#..
 	12 {1 day12part1  2 day12part2}
 	13 {1 day13part1  2 day13part2}
 	14 {1 day14part1  2 day14part2}
+	15 {1 day15part1  2 day15part2}
   )
 )
 
