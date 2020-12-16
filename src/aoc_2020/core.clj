@@ -1297,7 +1297,7 @@ L.#.L..#..
 
 (defn ticket-scanning-error-rate [rules tickets]
   "Calculates the ticket scanning error rate for the tickets given the rules"
-  (reduce + (filter (partial completely-invalid-value? rules) (flatten tickets))))
+  (reduce + (filter (partial completely-invalid-value? rules) (flatten tickets)))) ;; Sneakily, part 1 doesn't care about tickets
 
 (defn rules-and-tickets [lines]
   (let
@@ -1329,17 +1329,6 @@ L.#.L..#..
   "Find all sets of values that are ok for this rule"
   (filter  #(values-ok-for-rule? rule %) columns))
 
-(defn eliminate [vector-of-seqs]
-  (loop [i 0]
-    (let [theseq (vector-of-seqs i)]
-      (println theseq)
-    (cond
-      (= 1 (count theseq)) (let [single (first theseq)]
-                             (into [] (map #(remove (partial = single) %) vector-of-seqs)))
-      (= (count vector-of-seqs) i) nil
-      :else (recur (inc i)) )
-    )))
-
 (defn remove-value [value [colnum field-options]]
   [colnum (remove (partial = value) field-options)])
 
@@ -1349,6 +1338,12 @@ L.#.L..#..
     ;;[ (into finished-map colnum field) (map (partial remove-value field) (rest column-field-options))]))
     [(into finished-map [[colnum field]])  (map (partial remove-value field) (rest column-field-options))]))
 
+(defn build-map [column-field-options]
+  (loop
+    [[finished-map remaining] [{} column-field-options]]
+    (if (empty? remaining) finished-map
+      (recur (single-first-removed [finished-map remaining])))))
+
 (defn day16part2 []
   (let
     [[rules my-ticket nearby-tickets] (rules-and-tickets (-> 16 standard-day-filename filename-to-lines))
@@ -1356,9 +1351,11 @@ L.#.L..#..
      columns (apply map vector ok-tickets)
      possible-fields-for-columns (map-indexed  #(vector %1 (map first %2)) (map (partial filter-ok-rules-for-values rules) columns))
      possible-columns-for-fields (map (partial filter-ok-values-for-rule columns) rules)
-     possible-fields-sorted (sort (fn [[_ list1] [_ list2]] (- (count list1) (count list2))) possible-fields-for-columns)]
+     possible-fields-sorted (sort (fn [[_ list1] [_ list2]] (- (count list1) (count list2))) possible-fields-for-columns)
+     column-to-field-map (build-map possible-fields-sorted)]
 ;    (println possible-columns-for-fields)
-    possible-fields-sorted))
+;;    possible-fields-sorted))
+    column-to-field-map))
 
 ;;
 ;; Generic day handling
