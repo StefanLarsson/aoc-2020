@@ -17,6 +17,14 @@
   (clojure.string/split (slurp fname) #"\n\n")
 )
 
+(defn standard-day-filename [day]
+  (str "resources/day" day "/input.txt"))
+
+(defn days-input-as-lines [day]
+  (-> day
+      standard-day-filename
+      filename-to-lines))
+
 ;; Day 1
 
 (defn as-sum-of-n [n value values]
@@ -687,9 +695,6 @@
 
 ;; Day 11 Seating System
 
-(defn standard-day-filename [day]
-  (str "resources/day" day "/input.txt")
-  )
 (def test-seat-initial (clojure.string/split-lines
 "L.LL.LL.LL
 LLLLLLL.LL
@@ -1266,6 +1271,55 @@ L.#.L..#..
   (play-to-turn (play-initial '(18,11,9,0,5,1)) 30000000)
   ))
 
+;; Day 16 Ticket Translation
+
+(defn parse-field-rule [line]
+  "Parses a line withi a rule for a field. return value [field min1 max1 min2 max2]"
+  (let
+    [[_ field min1 max1 min2 max2] (re-matches #"(.*): (\d+)-(\d+) or (\d+)-(\d+)" line)]
+    [field (Integer/parseInt min1) (Integer/parseInt max1) (Integer/parseInt min2) (Integer/parseInt max2)]))
+
+(defn parse-ticket [line]
+  "Parses a ticket. Returns a sequence of the values"
+  (map #(Integer/parseInt %) (re-seq #"\d+" line)))
+
+(defn valid-for-rule? [value [rule-name min1 max1 min2 max2]]
+  "Verifies whether the value is valid for the rule"
+  (or (and (<= min1 value) (<= value max1)) (and (<= min2 value) (<= value max2))))
+
+(defn completely-invalid-value? [rules value]
+  "Checks if a value is not valid for any of the rules"
+    (not-any? (partial valid-for-rule? value) rules))
+
+(defn completely-invalid? [rules ticket]
+  "Checks if a ticket is completely invalid, i.e. if it has at least one completely invalid value"
+  (not-empty (filter (partial completely-invalid-value? rules) ticket)))
+
+(defn ticket-scanning-error-rate [rules tickets]
+  "Calculates the ticket scanning error rate for the tickets given the rules"
+  (reduce + (filter (partial completely-invalid-value? rules) (flatten tickets))))
+
+(defn rules-and-tickets [lines]
+  (let
+    [[rule-lines more] (split-with (partial not= "") lines)
+     my-ticket-line (first (drop 2 more))  ;; drop "" and "your ticket"
+     nearby-ticket-lines (drop 5 more)]    ;; drop "", "your ticket", my actual ticket, empty line, "nearby tickets"]
+
+    [(map parse-field-rule rule-lines) (parse-ticket my-ticket-line) (map parse-ticket nearby-ticket-lines)]))
+
+
+(defn day16part1 []
+  (let
+    [lines (days-input-as-lines 16)
+     [rules _ nearby-tickets] (rules-and-tickets lines)]
+
+    (format "The ticket scanning error rate is %d" (ticket-scanning-error-rate rules nearby-tickets))))
+
+(defn day16part2 []
+  (let
+    [[rules my-ticket nearby-tickets] (rules-and-tickets (-> 16 standard-day-filename filename-to-lines))]
+    my-ticket))
+
 ;;
 ;; Generic day handling
 (def days-parts-functions
@@ -1285,6 +1339,7 @@ L.#.L..#..
 	13 {1 day13part1  2 day13part2}
 	14 {1 day14part1  2 day14part2}
 	15 {1 day15part1  2 day15part2}
+	16 {1 day16part1  2 day16part2}
   )
 )
 
