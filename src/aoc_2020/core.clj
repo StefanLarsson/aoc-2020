@@ -1344,6 +1344,12 @@ L.#.L..#..
     (if (empty? remaining) finished-map
       (recur (single-first-removed [finished-map remaining])))))
 
+(defn departure-product [column-map ticket]
+  (let [ticket-vector (vec ticket)
+        dep-fields (filter (fn [[_ field]] (re-matches #"departure.*" field)) column-map )]
+    (reduce * (map (fn [[colnum _]] (nth ticket-vector colnum)) dep-fields))))
+
+
 (defn day16part2 []
   (let
     [[rules my-ticket nearby-tickets] (rules-and-tickets (-> 16 standard-day-filename filename-to-lines))
@@ -1355,7 +1361,8 @@ L.#.L..#..
      column-to-field-map (build-map possible-fields-sorted)]
 ;    (println possible-columns-for-fields)
 ;;    possible-fields-sorted))
-    column-to-field-map))
+    column-to-field-map
+    (format "The product of the departure fields is %d" (departure-product column-to-field-map my-ticket))))
 
 ;;
 ;; Generic day handling
