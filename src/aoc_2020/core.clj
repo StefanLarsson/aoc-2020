@@ -1315,10 +1315,50 @@ L.#.L..#..
 
     (format "The ticket scanning error rate is %d" (ticket-scanning-error-rate rules nearby-tickets))))
 
+(defn rule-ok-for-all-values? [values rule]
+  (every?  #(valid-for-rule? % rule) values))
+
+(defn filter-ok-rules-for-values [rules values]
+  (filter (partial rule-ok-for-all-values? values) rules))
+
+(defn values-ok-for-rule? [rule values]
+  "If all the values are ok for the rule"
+  (every? #(valid-for-rule? % rule) values ))
+
+(defn filter-ok-values-for-rule [columns rule]
+  "Find all sets of values that are ok for this rule"
+  (filter  #(values-ok-for-rule? rule %) columns))
+
+(defn eliminate [vector-of-seqs]
+  (loop [i 0]
+    (let [theseq (vector-of-seqs i)]
+      (println theseq)
+    (cond
+      (= 1 (count theseq)) (let [single (first theseq)]
+                             (into [] (map #(remove (partial = single) %) vector-of-seqs)))
+      (= (count vector-of-seqs) i) nil
+      :else (recur (inc i)) )
+    )))
+
+(defn remove-value [value [colnum field-options]]
+  [colnum (remove (partial = value) field-options)])
+
+(defn single-first-removed [[finished-map column-field-options]]
+  (let [[colnum single-list] (first column-field-options)
+        field (first single-list)]
+    ;;[ (into finished-map colnum field) (map (partial remove-value field) (rest column-field-options))]))
+    [(into finished-map [[colnum field]])  (map (partial remove-value field) (rest column-field-options))]))
+
 (defn day16part2 []
   (let
-    [[rules my-ticket nearby-tickets] (rules-and-tickets (-> 16 standard-day-filename filename-to-lines))]
-    my-ticket))
+    [[rules my-ticket nearby-tickets] (rules-and-tickets (-> 16 standard-day-filename filename-to-lines))
+     ok-tickets (filter (complement (partial completely-invalid? rules)) nearby-tickets)
+     columns (apply map vector ok-tickets)
+     possible-fields-for-columns (map-indexed  #(vector %1 (map first %2)) (map (partial filter-ok-rules-for-values rules) columns))
+     possible-columns-for-fields (map (partial filter-ok-values-for-rule columns) rules)
+     possible-fields-sorted (sort (fn [[_ list1] [_ list2]] (- (count list1) (count list2))) possible-fields-for-columns)]
+;    (println possible-columns-for-fields)
+    possible-fields-sorted))
 
 ;;
 ;; Generic day handling
