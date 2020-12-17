@@ -1364,6 +1364,53 @@ L.#.L..#..
     column-to-field-map
     (format "The product of the departure fields is %d" (departure-product column-to-field-map my-ticket))))
 
+;; Day 17 Conway Cubes
+;;
+;; Represent a state as the set of active cubes
+(defn parse-conway-line [y line]
+   (map first (filter  #(= \# (second %)) (map-indexed #(vector [%1 y] %2) line))))
+
+(defn parse-conway-lines [lines] ;; This will always be at z = 0
+  (into #{} (for [line (map-indexed #( parse-conway-line %1 %2) lines) [x y] line] [x y 0])))
+
+(defn generate-neighbours [[x y z]]
+  (for [x1 (range (dec x) (+ 2 x))
+        y1 (range (dec y) (+ 2 y))
+        z1 (range (dec z) (+ 2 z)) :when (not (and (= x1 x) (= y1 y) (= z1 z)))]
+    [x1 y1 z1]))
+
+(defn generate-neighbours-all [points]
+  (into (list) (apply concat (map generate-neighbours points))))
+
+(defn points-with-neighbours-and-counts [neighbour-list]
+  (let [inccount #(if (nil? %) 1 (inc %))]
+    (reduce #(update %1 %2 inccount)  {} neighbour-list)))
+;; TODO: replace this with frequencies!
+
+(defn new-conway-state [neighbour-list old-state]
+  (into #{}
+        (for
+    [[candidate-point freq] neighbour-list
+     :let [was-active (contains? old-state candidate-point)
+           result-point (if (or (= freq 3) (and (= freq 2) was-active)) candidate-point)]
+     :when result-point] result-point)))
+
+(defn evolve-conway-state [state]
+  (new-conway-state (points-with-neighbours-and-counts (generate-neighbours-all state)) state))
+
+(defn neighbour-count [state]
+  0)
+
+(defn day17part1 []
+  (let [consecutive-states
+        (->> 17
+             days-input-as-lines
+             parse-conway-lines
+             (iterate evolve-conway-state))
+        final-state (nth consecutive-states 6)
+        active-count (count final-state)]
+    (format "The number of active cubes is %d" active-count)))
+
 ;;
 ;; Generic day handling
 (def days-parts-functions
