@@ -889,7 +889,7 @@ L.#.L..#..
 (def initial-state [0 0 0])
 ;; A state is a vector of W/E position, S/N position and facing
 
-(defn direction [^long facing]
+(defn direction [ facing]
   (case (long (mod facing 360))
     0   [ 1  0]
     90  [ 0  1]
@@ -1411,6 +1411,8 @@ L.#.L..#..
         active-count (count final-state)]
     (format "The number of active cubes is %d" active-count)))
 
+(defn day17part2 []
+  "Not done yet!")
 ;;
 ;; Generic day handling
 (def days-parts-functions
@@ -1431,6 +1433,7 @@ L.#.L..#..
 	14 {1 day14part1  2 day14part2}
 	15 {1 day15part1  2 day15part2}
 	16 {1 day16part1  2 day16part2}
+	17 {1 day17part1  2 day17part2}
   )
 )
 
