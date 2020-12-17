@@ -1379,8 +1379,10 @@ L.#.L..#..
         z1 (range (dec z) (+ 2 z)) :when (not (and (= x1 x) (= y1 y) (= z1 z)))]
     [x1 y1 z1]))
 
-(defn generate-neighbours-all [points]
-  (into (list) (apply concat (map generate-neighbours points))))
+(defn generate-neighbours-all-by-generator [neighbour-generator points]
+  (into (list) (apply concat (map neighbour-generator points))))
+
+(def generate-neighbours-all (partial generate-neighbours-all-by-generator generate-neighbours))
 
 (defn points-with-neighbours-and-counts [neighbour-list]
   (let [inccount #(if (nil? %) 1 (inc %))]
@@ -1411,8 +1413,30 @@ L.#.L..#..
         active-count (count final-state)]
     (format "The number of active cubes is %d" active-count)))
 
+(defn parse-conway-4-lines [lines] ;; This will always be at z = 0, w = 0
+  (into #{} (for [line (map-indexed #( parse-conway-line %1 %2) lines) [x y] line] [x y 0 0])))
+
+(defn generate-neighbours-4 [[x y z w]]
+  (for [x1 (range (dec x) (+ 2 x))
+        y1 (range (dec y) (+ 2 y))
+        z1 (range (dec z) (+ 2 z))
+        w1 (range (dec w) (+ 2 w)) :when (not= [x y z w] [x1 y1 z1 w1])]
+    [x1 y1 z1 w1]))
+
+(def generate-neighbours-all-4 (partial generate-neighbours-all-by-generator generate-neighbours-4))
+
+(defn evolve-conway-4-state [state]
+  (new-conway-state (points-with-neighbours-and-counts (generate-neighbours-all-4 state)) state))
+
 (defn day17part2 []
-  "Not done yet!")
+  (let [consecutive-states
+        (->> 17
+             days-input-as-lines
+             parse-conway-4-lines
+             (iterate evolve-conway-4-state))
+        final-state (nth consecutive-states 6)
+        active-count (count final-state)]
+    (format "The number of active cubes is %d" active-count)))
 ;;
 ;; Generic day handling
 (def days-parts-functions
