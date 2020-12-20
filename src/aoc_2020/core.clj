@@ -1491,14 +1491,6 @@ L.#.L..#..
 (defn message-parser [string]
   (insta/parser (clojure.string/replace string ": " " = ")))
 
-(defn rules-and-messages [string]
-  (clojure.string/split string #"\n\n" ))
-
-(defn parser-and-messages [string]
-  (let [[parsergroup messagesgroup] (rules-and-messages string)]
-    [(message-parser parsergroup) (clojure.string/split-lines messagesgroup)]))
-
-
 (defn day19part1 []
   (let
     [[rules all-messages] (->
@@ -1510,6 +1502,20 @@ L.#.L..#..
      messages (clojure.string/split-lines all-messages)]
     (format "The number of matching messages is %d" (count (filter (complement #(insta/failure? (parser % :start :0)))  messages)))))
 
+(defn day19part2 []
+  (let
+    [[rules all-messages] (->
+                        19
+                        standard-day-filename
+                        slurp
+                        (clojure.string/split #"\n\n"))
+     actual-rules (-> rules
+                      (clojure.string/replace  "8: 42" "8: 42 | 42 8")
+                      (clojure.string/replace  "11: 42 31" "11: 42 31 | 42 11 31"))
+
+     parser (message-parser actual-rules)
+     messages (clojure.string/split-lines all-messages)]
+    (format "The number of matching messages is %d" (count (filter (complement #(insta/failure? (parser % :start :0)))  messages)))))
 
 ;;
 ;; Generic day handling
@@ -1533,7 +1539,7 @@ L.#.L..#..
 	16 {1 day16part1  2 day16part2}
 	17 {1 day17part1  2 day17part2}
 	18 {1 day18part1  2 day18part2}
-	19 {1 day19part1  2 day19part1}
+	19 {1 day19part1  2 day19part2}
   )
 )
 
