@@ -1417,11 +1417,14 @@ L.#.L..#..
   (into #{} (for [line (map-indexed #( parse-conway-line %1 %2) lines) [x y] line] [x y 0 0])))
 
 (defn generate-neighbours-4 [[x y z w]]
+  (time
   (for [x1 (range (dec x) (+ 2 x))
         y1 (range (dec y) (+ 2 y))
         z1 (range (dec z) (+ 2 z))
         w1 (range (dec w) (+ 2 w)) :when (not= [x y z w] [x1 y1 z1 w1])]
-    [x1 y1 z1 w1]))
+    [x1 y1 z1 w1])
+  )
+  )
 
 (def generate-neighbours-all-4 (partial generate-neighbours-all-by-generator generate-neighbours-4))
 
@@ -1437,6 +1440,31 @@ L.#.L..#..
         final-state (nth consecutive-states 6)
         active-count (count final-state)]
     (format "The number of active cubes is %d" active-count)))
+
+;; Day 18 Operation Order
+;;
+(defn symbol-list [line]
+  (read-string (str "(" line ")" )))
+
+(defn eval-left-infix [e]
+  (if (not (seq? e)) e
+           (case (count e)
+             1 (eval-left-infix (first e))
+             3 (let [[oper1 op oper2] e]
+                 (eval (list op (eval-left-infix oper1) (eval-left-infix oper2))))
+             (let [[oper1 op1 oper2 & more] e]
+               (eval-left-infix (conj more (eval (list op1 (eval-left-infix oper1) (eval-left-infix oper2)))))))))
+
+(defn left-infix [line]
+  (eval-left-infix (symbol-list line)))
+
+
+(defn day18part1 []
+  (let [answer (->> 18 days-input-as-lines
+                  (map left-infix)
+                  (reduce +))]
+    (format "The sum of values is %d" answer)))
+
 ;;
 ;; Generic day handling
 (def days-parts-functions
@@ -1458,6 +1486,7 @@ L.#.L..#..
 	15 {1 day15part1  2 day15part2}
 	16 {1 day16part1  2 day16part2}
 	17 {1 day17part1  2 day17part2}
+	18 {1 day18part1  2 day18part1}
   )
 )
 
