@@ -1465,6 +1465,26 @@ L.#.L..#..
                   (reduce +))]
     (format "The sum of values is %d" answer)))
 
+(defn eval-strange-prio-infix [e]
+  (if (not (seq? e)) e
+           (case (count e)
+             1 (eval-strange-prio-infix (first e))
+             3 (let [[oper1 op oper2] e]
+                 (eval (list op (eval-strange-prio-infix oper1) (eval-strange-prio-infix oper2))))
+             (let [[oper1 op1 oper2 & more] e]
+               (if (= '+ op1)
+                 (eval-strange-prio-infix (conj more (eval (list + (eval-strange-prio-infix oper1) (eval-strange-prio-infix oper2)))))
+                 (eval (list * (eval-strange-prio-infix oper1) (eval-strange-prio-infix (conj more oper2)))) )))))
+
+(defn strange-prio-infix [line]
+  (eval-strange-prio-infix (symbol-list line)))
+
+(defn day18part2 []
+  (let [answer (->> 18 days-input-as-lines
+                  (map strange-prio-infix)
+                  (reduce +))]
+    (format "The sum of values is %d" answer)))
+
 ;;
 ;; Generic day handling
 (def days-parts-functions
@@ -1486,7 +1506,7 @@ L.#.L..#..
 	15 {1 day15part1  2 day15part2}
 	16 {1 day16part1  2 day16part2}
 	17 {1 day17part1  2 day17part2}
-	18 {1 day18part1  2 day18part1}
+	18 {1 day18part1  2 day18part2}
   )
 )
 
