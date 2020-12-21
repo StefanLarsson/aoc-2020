@@ -1517,6 +1517,80 @@ L.#.L..#..
      messages (clojure.string/split-lines all-messages)]
     (format "The number of matching messages is %d" (count (filter (complement #(insta/failure? (parser % :start :0)))  messages)))))
 
+;; Day 20 Jurassic Jigsaw
+;;
+;; Input has 144 tiles
+;; 144 *4 *2 = 1152 edges with both orientations considered
+
+(defn image-binary [char-seq]
+  (reduce   #(+ (* 2 %1) (if (= \# %2) 1 0)) 0 char-seq))
+
+(defn parse-tile [string]
+  (let
+    [lines (clojure.string/split-lines string)
+     [header image-data] [(first lines) (rest lines)]
+     [_ tile-name] (re-matches #"Tile (\d+):" header)]
+    [tile-name image-data]
+    )
+  )
+
+;; D_4 consists of four rotations and four reflections
+;; It is easiest to find the edges on top and bottom
+;; in this representation
+;; We probably don't need actual rotations in part 1 at least
+(defn top-edge [image-rows]
+  (first image-rows))
+
+(defn bottom-edge [image-rows]
+  (last image-rows))
+
+(defn left-edge [image-rows]
+  (map first image-rows))
+
+(defn right-edge [image-rows]
+  (map last image-rows))
+
+(defn all-edges [image-rows]
+  (let
+    [unmirrored (map #(% image-rows) [top-edge bottom-edge left-edge right-edge])]
+    (map image-binary (concat unmirrored (map reverse unmirrored)))))
+
+(defn read-tiles [filename]
+  (let
+    [tiles (clojure.string/split (slurp filename) #"\n\n")]
+    (map parse-tile tiles)))
+
+(defn tile-to-encoded-edges [[tile-name image-rows]]
+  [tile-name (all-edges image-rows)])
+
+(defn necessarily-corners [filename]
+  (let
+    [tiles (read-tiles filename)
+     encoded-edge-tiles (map tile-to-encoded-edges tiles)
+     freqs (->> encoded-edge-tiles
+                (map second)
+                flatten
+                frequencies)
+     necessarily-corner (fn [[tile-name encoded-edges]]
+                          ( = 4 (count (filter #(= 1 (freqs %)) encoded-edges))))]
+    (filter necessarily-corner encoded-edge-tiles)))
+
+(defn day20part1 []
+  (let
+    [corners (necessarily-corners "resources/day20/input.txt")
+     product (reduce * (map #(read-string (first %)) corners))]
+    (format "The product of the corner tiles ids is %d" product)))
+
+;; Dang, we're gonna have to assemble the image anyway!
+
+
+
+
+
+
+
+
+
 ;;
 ;; Generic day handling
 (def days-parts-functions
