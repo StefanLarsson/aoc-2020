@@ -1563,6 +1563,8 @@ L.#.L..#..
 (defn tile-to-encoded-edges [[tile-name image-rows]]
   [tile-name (all-edges image-rows)])
 
+;; If a tile has four (two without reflection) edges that exist only once,
+;; it has to be a corner tile
 (defn necessarily-corners [filename]
   (let
     [tiles (read-tiles filename)
@@ -1584,11 +1586,110 @@ L.#.L..#..
 ;; Dang, we're gonna have to assemble the image anyway!
 
 
+(defn sorted-tiles [filename]
+  (let
+    [tiles (read-tiles filename)
+     encoded-edge-tiles (map tile-to-encoded-edges tiles)
+     freqs (->> encoded-edge-tiles
+                (map second)
+                flatten
+                frequencies)]
+    (group-by (fn [[tile-name encoded-edges]]
+                (count (filter #(= 1 (freqs %)) encoded-edges))) encoded-edge-tiles)))
+
+;; There are 4 tiles that have to be corners
+;; And 40 tiles that have to be edges
+;; and 144 tiles in total
+;; If the image is w tiles wide and h tiles high,
+;; w * h = 144 = 3 * 3 * 2 * 2 * 2 * 2
+;; 2*(w - 2) + 2 * (h - 2) = 40
+;; w + h = 24
+;; It is easy to see that we must have w = h = 12
+;; 
+
+;; Generators for D_4:
+;; R rotation pi/2 in positive direction
+;; S reflection in vertical line through middle
+;; D_4 = {R^0 = id, R^1, R^2, R^3, S, SR^1, SR^2, SR^3}
+;; :R0 :R1 :R2 :R3 :S :SR :SR2 :SR3
 
 
+(comment "
+A tile is represented by
+         top-edge (left->right)
+         bottom-edge (left-> right)
+         left-edge (top->bottom)
+         right-edge (top->bottom)
+
+Rotating the tile, the top is on the left in opposite order, the right edge is on top in same order
+         the bottom edge is on the right in opposite order, and the left edge is on the bottom in same order
+
+Reflecting the tile in the vertical center line,
+         the top is on top but in opposite order
+         the bottom is on the bottom but in opposite order
+         the left edge is on the right edge in same order
+         the right edge is on the left edge in same order
+
+")
+(defn rotate-tile [[top bottom left right]]
+  [right left (reverse top) (reverse bottom)])
+
+(defn mirror-tile [[top bottom left right]]
+  [(reverse top) (reverse bottom) right left])
+
+(def r rotate-tile)
+(def r2 (comp r r))
+(def r3 (comp r r r))
+(def s mirror-tile)
+(def sr (comp s r))
+(def sr2 (comp s r2))
+(def sr3 (comp s r3))
 
 
+(defn tile-to-edge-list [image-data]
+  (let
+    [top (first image-data)
+     bottom (last image-data)
+     left (map first image-data)
+     right (map last image-data)]
+    [top bottom left right]))
 
+;; A search-state: The list of tiles so far
+;; with their orientations
+;; and the set of still available tiles
+(defn initial-search-state [tiles]
+  [[] (into #{} tiles)])
+
+(defn attach-tile-with-orientation [[tile-sequence available-tiles]  tile orientation]
+  [(conj tile-sequence (orientation tile)) (disj available-tiles tile)])
+(comment "
+(defn pruning-search [start g]
+  Traverses graph g (adjacency list representation)
+   outputting all elements that are reachable from node start
+  (loop
+    [ (list start)
+    found #{}]
+    (if
+      (empty? needed) found ;; A list will work like a stack
+      (let
+        [curr (first needed)
+        children (g curr)
+        needed-children (filter (complement #(contains? found %)) children)
+        new-needed (into (rest needed) needed-children)]
+        (if (contains? found curr)
+          (recur new-needed found)
+          (recur new-needed (conj found curr))
+        )
+      )
+    )
+  )
+)
+")
+(defn day20part2 []
+  (let
+     [tiles (read-tiles "resources/day20/input.txt")
+      edgies (map (fn [[id image-data]] [id (tile-to-edge-list image-data)]) tiles)]
+     edgies))
 
 
 ;;
